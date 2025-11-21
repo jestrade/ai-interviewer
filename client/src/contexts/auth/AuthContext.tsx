@@ -68,13 +68,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         setUser(userData);
 
-        const formData = new FormData();
-        formData.append("role", role);
-
         try {
           await fetch(`${config.api.url}/authenticate`, {
             method: "POST",
-            body: formData,
+            body: JSON.stringify({ role: role }),
+            headers: {
+              "Content-Type": "application/json",
+            },
           });
         } catch (error) {
           notifyError("Error sending audio or processing response:", error);

@@ -126,15 +126,16 @@ const Chat = () => {
 
           await processVoiceInput(transcript);
 
-          const formData = new FormData();
-          formData.append("text", transcript);
           setIsTyping(true);
 
           try {
             setIsProcessingARequest(false);
             const response = await fetch(`${config.api.url}/interview`, {
               method: "POST",
-              body: formData,
+              body: JSON.stringify({ text: transcript }),
+              headers: {
+                "Content-Type": "application/json",
+              },
             });
 
             if (!response.ok) {
@@ -280,11 +281,12 @@ const Chat = () => {
     try {
       setIsProcessingARequest(true);
 
-      const formData = new FormData();
-      formData.append("text", userMessage.content);
       const response = await fetch(`${config.api.url}/interview`, {
         method: "POST",
-        body: formData,
+        body: JSON.stringify({ text: userMessage.content }),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) {
