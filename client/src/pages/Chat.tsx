@@ -33,6 +33,7 @@ const Chat = () => {
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isProcessingARequest, setIsProcessingARequest] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isMicEnabled, setIsMicEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -141,6 +142,7 @@ const Chat = () => {
         setIsTyping(true);
 
         try {
+          setIsProcessingARequest(false);
           const response = await fetch(
             `${import.meta.env.VITE_API_BASE_URL}/interview`,
             {
@@ -159,6 +161,8 @@ const Chat = () => {
           speakText(data.text);
         } catch (error) {
           console.error("Error sending audio or processing response:", error);
+        } finally {
+          setIsProcessingARequest(false);
         }
 
         setIsTyping(false);
@@ -227,7 +231,29 @@ const Chat = () => {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
 
-    await processAIResponse(input);
+    try {
+      setIsProcessingARequest(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/interview`,
+        {
+          method: "POST",
+          body: JSON.stringify({ userText: userMessage.content }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      await processAIResponse(data.text);
+      speakText(data.text);
+    } catch (error) {
+      console.error("Error sending audio or processing response:", error);
+    } finally {
+      setIsProcessingARequest(false);
+    }
   };
 
   if (!user) return null;
@@ -471,12 +497,17 @@ const Chat = () => {
                     : "Type your response or use voice..."
                 }
                 className="flex-1 h-12 bg-background border-border/50 focus-visible:ring-primary transition-all duration-300"
-                disabled={isTyping || isRecording}
+                disabled={isTyping || isRecording || isProcessingARequest}
               />
 
               <Button
                 type="submit"
-                disabled={!input.trim() || isTyping || isRecording}
+                disabled={
+                  !input.trim() ||
+                  isTyping ||
+                  isRecording ||
+                  isProcessingARequest
+                }
                 className="h-12 px-6 bg-gradient-primary hover:opacity-90 shadow-soft transition-all duration-300 hover:shadow-medium"
               >
                 {isTyping ? (
