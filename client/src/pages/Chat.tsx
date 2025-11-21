@@ -14,6 +14,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  played: boolean;
 }
 
 const INITIAL_MESSAGE =
@@ -29,6 +30,7 @@ const Chat = () => {
       role: "assistant",
       content: INITIAL_MESSAGE,
       timestamp: new Date(),
+      played: false,
     },
   ]);
   const [input, setInput] = useState("");
@@ -38,7 +40,7 @@ const Chat = () => {
   const [isMicEnabled, setIsMicEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
+  // const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -51,7 +53,22 @@ const Chat = () => {
   }, [messages]);
 
   useEffect(() => {
-    setTimeout(() => speakText(messages[0].content), 1000);
+    setTimeout(() => {
+      if (!messages[0].played) {
+        speakText(messages[0].content);
+        setMessages((prev) => {
+          const newMessages = [...prev];
+          newMessages[0].played = true;
+          return newMessages;
+        });
+      }
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis.cancel();
+    };
   }, []);
 
   const handleSignOut = async () => {
@@ -107,6 +124,36 @@ const Chat = () => {
             event.results[event.results.length - 1][0].transcript.trim();
 
           await processVoiceInput(transcript);
+
+          const formData = new FormData();
+          formData.append("text", transcript);
+          setIsTyping(true);
+
+          try {
+            setIsProcessingARequest(false);
+            const response = await fetch(
+              `${import.meta.env.VITE_API_BASE_URL}/interview`,
+              {
+                method: "POST",
+                body: formData,
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            await processAIResponse(data.text);
+            speakText(data.text);
+          } catch (error) {
+            console.error("Error sending audio or processing response:", error);
+          } finally {
+            setIsProcessingARequest(false);
+          }
+
+          setIsTyping(false);
         };
 
         recognition.onerror = (err) =>
@@ -116,6 +163,7 @@ const Chat = () => {
       // -------------------------------
       // 2. Setup MediaRecorder (Audio)
       // -------------------------------
+      /*
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -169,7 +217,7 @@ const Chat = () => {
       };
 
       // Start both: recorder + speech recognition
-      mediaRecorder.start();
+      mediaRecorder.start(); */
       if (recognition) recognition.start();
 
       setIsRecording(true);
@@ -190,8 +238,8 @@ const Chat = () => {
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
-      setIsRecording(false);
     }
+    setIsRecording(false);
   };
 
   const processVoiceInput = async (transcription: string) => {
@@ -211,6 +259,7 @@ const Chat = () => {
       role: "assistant",
       content: userMessage,
       timestamp: new Date(),
+      played: true,
     };
 
     setMessages((prev) => [...prev, aiMessage]);
@@ -233,11 +282,14 @@ const Chat = () => {
 
     try {
       setIsProcessingARequest(true);
+
+      const formData = new FormData();
+      formData.append("text", userMessage.content);
       const response = await fetch(
         `${import.meta.env.VITE_API_BASE_URL}/interview`,
         {
           method: "POST",
-          body: JSON.stringify({ userText: userMessage.content }),
+          body: formData,
         }
       );
 

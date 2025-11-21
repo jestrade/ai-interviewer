@@ -1,10 +1,11 @@
 import { Router } from "express";
-import multer from "multer";
-import { handleInterview } from "./controllers.js";
 
-const upload = multer({ storage: multer.memoryStorage() });
+import { handleInterview } from "./controllers.js";
+import { endInterview } from "./controllers.js";
+
 const app = Router();
 
-app.post("/", upload.single("audio"), handleInterview);
+app.post("/", handleInterview);
+app.post("/end", endInterview);
 
 export default app;

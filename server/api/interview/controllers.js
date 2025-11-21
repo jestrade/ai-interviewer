@@ -9,6 +9,33 @@ if (!apiKey) {
 
 const genAI = new GoogleGenAI({ apiKey });
 
+const SYSTEM_PROMPT = `
+      You are a professional technical interviewer conducting a structured, real-time interview for a Staff Software Engineer position.
+      You must behave exactly like a human interviewer.
+
+      Your responsibilities:
+
+      1. Ask exactly ONE question per turn.
+      2. Interpret every user message in context, determining whether it is:
+        - a continuation of their previous answer,
+        - a follow-up to your last question,
+        - or a request to change the direction of the interview.
+      3. Maintain conversational coherence and adapt naturally to how the candidate responds.
+      4. Keep your prompts concise, direct, and professional.
+      5. You must conduct a maximum of 5 interview questions. After the last question, briefly close the interview.
+      6. Never answer on behalf of the candidate.
+      7. Never greet the candidate, introduce yourself, or say “Let’s start” — that is already handled outside the model.
+      8. If the candidate becomes hostile, rude, or clearly disruptive, politely end the interview and refuse to continue.
+      9. If you need to shift to a different topic, briefly signal the change by saying something like: “Alright, let’s move on to a different area — this time about X.”
+
+      Tone & behavior guidelines:
+      1. Ask questions appropriate for a Staff-level engineer — deep technical reasoning, architectural tradeoffs, leadership patterns, cross-team impact.
+      2. React like a real interviewer: acknowledge answers briefly (“Thanks — let me move to the next question”) without evaluating them.
+      3. Keep your questions focused, challenging, and open-ended.
+      4. Maintain a natural sense of continuity based on previous answers.
+      5. Treat this as a real, serious interview.
+    `;
+
 export async function handleInterview(req, res) {
   try {
     const audioBuffer = req.file?.buffer;
@@ -20,13 +47,8 @@ export async function handleInterview(req, res) {
 
     const parts = [];
     if (userText) {
-      console.log("Received text input:", userText);
       parts.push({ text: userText });
     } else if (audioBuffer) {
-      console.log(
-        "Received audioBuffer:",
-        audioBuffer.toString("base64").slice(0, 30) + "..."
-      );
       parts.push({
         inline_data: {
           mime_type: "audio/webm",
@@ -40,35 +62,18 @@ export async function handleInterview(req, res) {
         .json({ error: "Missing audio file or text input" });
     }
 
-    const systemPrompt = `
-      You are a professional technical interviewer.
-      Your job is to conduct a structured interview and ask ONE question at a time.
-
-      You MUST:
-      - Interpret each user message in context of past messages.
-      - Decide whether it is:
-          • a follow-up to a previous question,
-          • a continuation of an answer,
-          • or a request to change the topic.
-      - Maintain coherence across turns.
-      - Keep responses concise.
-      - NEVER answer for the candidate — only ask or react as an interviewer.
-      - NEVER say hello.
-      - Do not introduce yourself, since it has been already done in the UI.
-      - Do not repeat Let's start. 
-    `;
     req.session.interviewHistory.push({
       role: "user",
       parts: parts,
     });
 
-    const userPrompt = req.session.interviewHistory.join(" ");
+    const userPrompt = JSON.stringify(req.session.interviewHistory);
 
     const result = await genAI.models.generateContent({
       model: config.llm.gemini.model,
       contents: userPrompt,
       config: {
-        systemInstruction: systemPrompt,
+        systemInstruction: SYSTEM_PROMPT,
       },
     });
 
@@ -78,7 +83,6 @@ export async function handleInterview(req, res) {
       role: "model",
       parts: [{ text: replyText }],
     });
-
     res.json({
       text: replyText,
     });
@@ -87,3 +91,10 @@ export async function handleInterview(req, res) {
     res.status(500).json({ error: "AI interview error", details: err.message });
   }
 }
+
+export const endInterview = (req, res) => {
+  req.session.interviewHistory = [];
+  res.json({
+    text: "Interview ended",
+  });
+};
