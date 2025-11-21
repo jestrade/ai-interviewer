@@ -21,6 +21,7 @@ export async function handleInterview(req, res) {
 
     const parts = [];
     console.log(req.body);
+    console.log(req.session.role);
     if (userText) {
       parts.push({ text: userText });
     } else if (audioBuffer) {
