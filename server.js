@@ -1,22 +1,19 @@
 import express from "express";
 import cors from "cors";
-import api from "./api/index.js";
 import config from "./config/index.js";
-import session from "express-session";
+import api from "./api/index.js";
+import sessionMiddleware from "./middlewares/session/index.js";
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
-
 app.use(
-  session({
-    secret: config.httpServer.sessionKey,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false },
+  cors({
+    credentials: true,
   })
 );
+app.use(express.json());
+
+app.use(sessionMiddleware());
 
 app.use("/api", api);
 
