@@ -14,14 +14,16 @@ export async function handleInterview(req, res) {
   try {
     const audioBuffer = req.file?.buffer;
     const userText = req.body?.text || "";
-
+    console.log(req.session);
     if (!req.session.interviewHistory) {
-      req.session.interviewHistory = [];
+      throw new Error("History missing");
+    }
+    if (!req.session.role) {
+      throw new Error("Role missing");
     }
 
     const parts = [];
-    console.log(req.body);
-    console.log(req.session.role);
+
     if (userText) {
       parts.push({ text: userText });
     } else if (audioBuffer) {
