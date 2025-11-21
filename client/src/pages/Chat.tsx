@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth/AuthContext";
 import { Send, LogOut, Loader2, Mic, MicOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
+import config from "@/config";
 import { speakText } from "@/lib/utils";
+import { notifyError } from "@/services/sentry";
 
 interface Message {
   id: string;
@@ -21,7 +22,7 @@ const INITIAL_MESSAGE =
   "Hello! I'm your AI interviewer today. I'll be asking you questions to assess your skills and experience. Are you ready to begin?";
 
 const Chat = () => {
-  const { user, signOut } = useAuth();
+  const { user, logOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
@@ -72,7 +73,7 @@ const Chat = () => {
   }, []);
 
   const handleSignOut = async () => {
-    await signOut();
+    await logOut();
     navigate("/auth");
   };
 
@@ -131,16 +132,13 @@ const Chat = () => {
 
           try {
             setIsProcessingARequest(false);
-            const response = await fetch(
-              `${import.meta.env.VITE_API_BASE_URL}/interview`,
-              {
-                method: "POST",
-                body: formData,
-              }
-            );
+            const response = await fetch(`${config.api.url}/interview`, {
+              method: "POST",
+              body: formData,
+            });
 
             if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
+              notifyError(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
@@ -148,16 +146,15 @@ const Chat = () => {
             await processAIResponse(data.text);
             speakText(data.text);
           } catch (error) {
-            console.error("Error sending audio or processing response:", error);
+            notifyError("Error sending audio or processing response:", error);
           } finally {
             setIsProcessingARequest(false);
+            setIsTyping(false);
           }
-
-          setIsTyping(false);
         };
 
         recognition.onerror = (err) =>
-          console.error("Speech recognition error:", err);
+          notifyError("Speech recognition error:", err);
       }
 
       // -------------------------------
@@ -192,7 +189,7 @@ const Chat = () => {
         try {
           setIsProcessingARequest(false);
           const response = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL}/interview`,
+            `${config.api.url}/interview`,
             {
               method: "POST",
               body: formData,
@@ -200,7 +197,7 @@ const Chat = () => {
           );
 
           if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            notifyError(`HTTP error! status: ${response.status}`);
           }
 
           const data = await response.json();
@@ -208,7 +205,7 @@ const Chat = () => {
           await processAIResponse(data.text);
           speakText(data.text);
         } catch (error) {
-          console.error("Error sending audio or processing response:", error);
+          notifyError("Error sending audio or processing response:", error);
         } finally {
           setIsProcessingARequest(false);
         }
@@ -226,7 +223,7 @@ const Chat = () => {
         description: "Speak your answer",
       });
     } catch (error) {
-      console.error("Recording failed:", error);
+      notifyError("Recording failed:", error);
       toast({
         title: "Recording failed",
         description: "Could not start recording",
@@ -285,16 +282,13 @@ const Chat = () => {
 
       const formData = new FormData();
       formData.append("text", userMessage.content);
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/interview`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch(`${config.api.url}/interview`, {
+        method: "POST",
+        body: formData,
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        notifyError(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
@@ -302,7 +296,7 @@ const Chat = () => {
       await processAIResponse(data.text);
       speakText(data.text);
     } catch (error) {
-      console.error("Error sending audio or processing response:", error);
+      notifyError("Error sending audio or processing response:", error);
     } finally {
       setIsProcessingARequest(false);
     }
@@ -342,6 +336,10 @@ const Chat = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground italic">
+              <span className="font-serif">Hello, </span>
+              {user.name}
+            </span>
             <Avatar className="w-9 h-9 border-2 border-primary/20">
               <AvatarImage src={user.avatar} alt={user.name} />
               <AvatarFallback className="bg-primary text-primary-foreground">

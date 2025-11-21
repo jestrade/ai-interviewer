@@ -5,7 +5,7 @@ import { getSystemPrompt } from "../../lib/prompts.js";
 const apiKey = config.llm.gemini.apiKey;
 
 if (!apiKey) {
-  console.error("GEMINI_API_KEY is not set in environment variables.");
+  throw new Error("GEMINI_API_KEY is not set in environment variables.");
 }
 
 const genAI = new GoogleGenAI({ apiKey });
@@ -16,11 +16,10 @@ export async function handleInterview(req, res) {
     const userText = req.body?.text || "";
 
     if (!req.session.interviewHistory) {
-      req.session.interviewHistory = [];
+      throw new Error("Interview history not initialized");
     }
 
     const parts = [];
-    console.log(req.body);
     if (userText) {
       parts.push({ text: userText });
     } else if (audioBuffer) {
@@ -48,7 +47,7 @@ export async function handleInterview(req, res) {
       model: config.llm.gemini.model,
       contents: userPrompt,
       config: {
-        systemInstruction: getSystemPrompt(req.session.role),
+        systemInstruction: getSystemPrompt("staff-software-engineer"),
       },
     });
 
@@ -67,9 +66,11 @@ export async function handleInterview(req, res) {
   }
 }
 
-export const endInterview = (req, res) => {
+export const init = (req, res) => {
   req.session.interviewHistory = [];
+  req.session.role = req.body.role;
+
   res.json({
-    text: "Interview ended",
+    text: "Interview initialized",
   });
 };
