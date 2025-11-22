@@ -273,6 +273,7 @@ const Chat = () => {
       role: "user",
       content: input,
       timestamp: new Date(),
+      played: true,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -337,17 +338,28 @@ const Chat = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground italic">
+          <div className="flex items-center justify-end gap-3">
+            {/* Desktop view: "Hello, {name}" on left */}
+            <span className="hidden md:inline text-sm text-muted-foreground italic">
               <span className="font-serif">Hello, </span>
               {user.name}
             </span>
-            <Avatar className="w-9 h-9 border-2 border-primary/20">
-              <AvatarImage src={user.avatar} alt={user.name} />
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                {user.name[0]}
-              </AvatarFallback>
-            </Avatar>
+
+            {/* Mobile + Desktop avatar */}
+            <div className="flex items-center gap-2">
+              <Avatar className="w-9 h-9 border-2 border-primary/20">
+                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {user.name[0]}
+                </AvatarFallback>
+              </Avatar>
+
+              {/* Mobile-only username next to avatar */}
+              <span className="md:hidden text-sm text-muted-foreground italic">
+                {user.name}
+              </span>
+            </div>
+
             <Button
               variant="ghost"
               size="icon"

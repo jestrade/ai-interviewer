@@ -14,7 +14,8 @@ export async function handleInterview(req, res) {
   try {
     const audioBuffer = req.file?.buffer;
     const userText = req.body?.text || "";
-    console.log(req.session);
+    console.log("req.session.interviewHistory", req.session.interviewHistory);
+    console.log("req.session.role", req.session.role);
     if (!req.session.interviewHistory) {
       throw new Error("History missing");
     }
