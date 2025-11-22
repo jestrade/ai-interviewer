@@ -1,11 +1,10 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth/hooks";
 import Chat from "../../components/chat";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import NotFound from "../not-found";
 
 const Private = () => {
   const { user, logOut } = useAuth();
@@ -13,7 +12,7 @@ const Private = () => {
 
   const handleSignOut = async () => {
     await logOut();
-    navigate("/public/auth");
+    navigate("/");
   };
 
   if (!user) return null;
@@ -83,9 +82,7 @@ const Private = () => {
       </header>
 
       <Routes>
-        <Route path="/" element={<Navigate to="/private/chat" replace />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="*" element={<NotFound />} />
+        <Route path="/" element={<Chat />} />
       </Routes>
     </div>
   );
