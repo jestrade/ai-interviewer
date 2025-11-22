@@ -46,6 +46,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithGoogle = async (role: string) => {
     setIsLoading(true);
 
+    try {
+      await authenticate.mutateAsync(role);
+      const userData = {
+        id: "user.uid",
+        email: "user.email",
+        name: "user.displayName",
+        avatar: null,
+        role,
+      };
+
+      setUser(userData);
+      localStorage.setItem("role", role);
+    } catch (error) {
+      notifyError("Error initializing interview:", error);
+    }
+
+    setIsLoading(false);
+  };
+
+  const signInWithGoogleProd = async (role: string) => {
+    setIsLoading(true);
     signInWithPopup(auth, provider)
       .then(async (result) => {
         const user = result.user;

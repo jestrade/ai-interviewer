@@ -32,8 +32,8 @@ api.interceptors.response.use(
 
 // Direct API functions (for use with React Query)
 export const apiFunctions = {
-  sendMessage: async (text: string) => {
-    const response = await api.post("/interview", { text });
+  sendMessage: async (message: string) => {
+    const response = await api.post("/interview", { message });
     return response.data;
   },
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth/hooks";
 import { Send, Loader2, Mic, MicOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { speakText, getRoleName } from "@/lib/utils";
+import { speakText, getRoleName, interruptSpeech } from "@/lib/utils";
 import { notifyError } from "@/services/sentry";
 import { useInterviewApi } from "@/services/api";
 import { Message } from "./types";
@@ -36,26 +36,49 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const startConversation = async () => {
-    try {
-      setIsProcessingARequest(false);
-      await sendMessage.mutateAsync("Start");
-      await processAIResponse(sendMessage.data?.text);
-    } catch (error) {
-      notifyError("Error sending voice message:", error);
-    } finally {
-      setIsProcessingARequest(false);
-      setIsTyping(false);
-    }
-  };
+  const processAIResponse = useCallback(async (responseText: string) => {
+    const textToUse =
+      responseText || "I'm processing your response. Please give me a moment.";
+
+    setMessages((prev) => [
+      ...prev,
+      buildUserMessage({ role: "assistant", content: textToUse }) as Message,
+    ]);
+
+    // Add a small delay to ensure the message is rendered before speaking
+    setTimeout(() => {
+      speakText(textToUse);
+    }, 100);
+  }, []);
+
+  const processSendMessage = useCallback(
+    async (message: string) => {
+      try {
+        setIsProcessingARequest(true);
+
+        // Interrupt any ongoing speech before sending a new message
+        interruptSpeech();
+
+        const result = await sendMessage.mutateAsync(message);
+
+        await processAIResponse(result?.text);
+      } catch (error) {
+        notifyError("Error sending message:", error);
+      } finally {
+        setIsProcessingARequest(false);
+        setIsTyping(false);
+      }
+    },
+    [sendMessage, processAIResponse]
+  );
 
   useEffect(() => {
-    startConversation();
+    processSendMessage("start");
   }, []);
 
   useEffect(() => {
     return () => {
-      window.speechSynthesis.cancel();
+      interruptSpeech();
     };
   }, []);
 
@@ -110,16 +133,7 @@ const Chat = () => {
 
           setIsTyping(true);
 
-          try {
-            setIsProcessingARequest(false);
-            await sendMessage.mutateAsync(transcript);
-            await processAIResponse(sendMessage.data?.text || transcript);
-          } catch (error) {
-            notifyError("Error sending voice message:", error);
-          } finally {
-            setIsProcessingARequest(false);
-            setIsTyping(false);
-          }
+          processSendMessage(transcript);
         };
 
         recognition.onerror = (err) =>
@@ -171,8 +185,8 @@ const Chat = () => {
 
           const data = await response.json();
 
-          await processAIResponse(data.text);
-          speakText(data.text);
+          await processAIResponse(data.message);
+          speakText(data.message);
         } catch (error) {
           notifyError("Error sending audio or processing response:", error);
         } finally {
@@ -209,28 +223,26 @@ const Chat = () => {
   };
 
   const processVoiceInput = async (transcription: string) => {
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: transcription,
-      timestamp: new Date(),
-      played: true,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [
+      ...prev,
+      buildUserMessage({ role: "user", content: transcription }) as Message,
+    ]);
   };
 
-  const processAIResponse = async (responseText: string) => {
-    const aiMessage: Message = {
+  const buildUserMessage = ({
+    role,
+    content,
+  }: {
+    role: string;
+    content: string;
+  }) => {
+    return {
       id: Date.now().toString(),
-      role: "assistant",
-      content: responseText,
+      role,
+      content,
       timestamp: new Date(),
       played: true,
     };
-
-    setMessages((prev) => [...prev, aiMessage]);
-    speakText(responseText);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -238,27 +250,13 @@ const Chat = () => {
 
     if (!input.trim()) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input,
-      timestamp: new Date(),
-      played: true,
-    };
+    setMessages((prev) => [
+      ...prev,
+      buildUserMessage({ role: "user", content: input }) as Message,
+    ]);
+    processSendMessage(input);
 
-    setMessages((prev) => [...prev, userMessage]);
     setInput("");
-
-    try {
-      setIsProcessingARequest(true);
-
-      await sendMessage.mutateAsync(userMessage.content);
-      await processAIResponse(sendMessage.data?.text || userMessage.content);
-    } catch (error) {
-      notifyError("Error sending message:", error);
-    } finally {
-      setIsProcessingARequest(false);
-    }
   };
 
   if (!user) return null;
@@ -295,7 +293,8 @@ const Chat = () => {
             AI Interviewer
           </h2>
           <p className="text-sm text-muted-foreground">
-            Ready to assess your skills for the {getRoleName(user.role)} role
+            Ready to assess your skills for the{" "}
+            <span className="font-bold">{getRoleName(user.role)}</span> role
           </p>
         </div>
       </div>
