@@ -3,6 +3,6 @@ export const init = (req, res) => {
   req.session.role = req.body?.role;
 
   res.json({
-    text: "Interview initialized",
+    message: "Ok",
   });
 };
