@@ -1,10 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+import { createContext, useState, useEffect, ReactNode } from "react";
 
 import {
   onAuthStateChanged,
@@ -15,7 +9,7 @@ import {
 } from "firebase/auth";
 
 import { app } from "../../services/firebase";
-import config from "@/config";
+import { useAuthApi } from "../../services/api";
 import { User, AuthContextType } from "./types";
 
 import { notifyError } from "@/services/sentry";
@@ -25,17 +19,12 @@ const auth = getAuth(app);
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    notifyError("useAuth must be used within AuthProvider");
-  }
-  return context;
-};
+export { AuthContext };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { authenticate } = useAuthApi();
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -45,6 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           email: user.email,
           name: user.displayName,
           avatar: user.photoURL,
+          role: localStorage.getItem("role"),
         };
         setUser(userData);
       }
@@ -64,20 +54,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           email: user.email,
           name: user.displayName,
           avatar: user.photoURL,
+          role,
         };
 
         setUser(userData);
+        localStorage.setItem("role", role);
 
         try {
-          await fetch(`${config.api.url}/authenticate`, {
-            method: "POST",
-            body: JSON.stringify({ role: role }),
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
+          await authenticate.mutateAsync(role);
         } catch (error) {
-          notifyError("Error sending audio or processing response:", error);
+          notifyError("Error initializing interview:", error);
         }
       })
       .catch((error) => {
@@ -103,10 +89,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log("User successfully signed out.");
       })
       .catch((error) => {
-        console.error("Logout error:", error);
+        notifyError("Logout error:", error);
       })
       .finally(() => {
         setUser(null);
+        localStorage.removeItem("role");
         setIsLoading(false);
       });
   };

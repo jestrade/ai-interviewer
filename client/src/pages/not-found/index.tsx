@@ -1,13 +1,13 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { notifyError } from "@/services/sentry";
 
 const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
     notifyError(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
+      `404 Error: User attempted to access non-existent route: ${location.pathname}`
     );
   }, [location.pathname]);
 

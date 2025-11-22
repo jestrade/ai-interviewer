@@ -14,6 +14,11 @@ const config = {
   sentry: {
     dsn: import.meta.env.VITE_SENTRY_DSN,
   },
+  mode: {
+    isProduction: import.meta.env.VITE_MODE === "production",
+    isDevelopment: import.meta.env.VITE_MODE === "development",
+    isStaging: import.meta.env.VITE_MODE === "staging",
+  },
 };
 
 export default config;

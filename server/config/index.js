@@ -12,6 +12,7 @@ const config = {
     port: Number(process.env.HTTP_PORT),
     baseUrl: `${process.env.HTTP_BASE_URL}:${process.env.HTTP_PORT}`,
     sessionKey: process.env.HTTP_SESSION_KEY,
+    frontendOrigin: process.env.HTTP_FRONTEND_ORIGIN,
   },
   llm: {
     gemini: {
