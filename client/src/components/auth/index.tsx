@@ -18,6 +18,7 @@ import {
 import { useAuth } from "@/contexts/auth/hooks";
 import { Loader2 } from "lucide-react";
 import Logo from "@/assets/img/logo.svg";
+import { ROLE_LABELS } from "@/lib/constants";
 import { SelectGroup } from "@radix-ui/react-select";
 
 const Auth = () => {
@@ -93,47 +94,37 @@ const Auth = () => {
                   <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
                     Engineering Roles
                   </div>
-                  <SelectItem value="junior-software-engineer">
-                    Junior Software Engineer
-                  </SelectItem>
-                  <SelectItem value="mid-software-engineer">
-                    Mid-Level Software Engineer
-                  </SelectItem>
-                  <SelectItem value="senior-software-engineer">
-                    Senior Software Engineer
-                  </SelectItem>
-                  <SelectItem value="staff-software-engineer">
-                    Staff Software Engineer
-                  </SelectItem>
+                  {Object.entries(ROLE_LABELS.engineering).map(
+                    ([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectGroup>
                 <SelectGroup>
                   <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
                     Project & Program Management
                   </div>
-                  <SelectItem value="project-manager">
-                    Project Manager
-                  </SelectItem>
-                  <SelectItem value="senior-project-manager">
-                    Senior Project Manager
-                  </SelectItem>
-                  <SelectItem value="program-manager">
-                    Program Manager
-                  </SelectItem>
-                  <SelectItem value="senior-program-manager">
-                    Senior Program Manager
-                  </SelectItem>
+                  {Object.entries(ROLE_LABELS.management).map(
+                    ([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectGroup>
                 <SelectGroup>
                   <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
                     Leadership & Executive
                   </div>
-                  <SelectItem value="director">Director</SelectItem>
-                  <SelectItem value="senior-director">
-                    Senior Director
-                  </SelectItem>
-                  <SelectItem value="vp">VP</SelectItem>
-                  <SelectItem value="senior-vp">Senior VP</SelectItem>
-                  <SelectItem value="ceo">CEO</SelectItem>
+                  {Object.entries(ROLE_LABELS.leadership).map(
+                    ([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectGroup>
               </SelectContent>
             </Select>

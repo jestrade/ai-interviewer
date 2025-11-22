@@ -6,16 +6,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth/hooks";
 import { Send, Loader2, Mic, MicOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { speakText, getRoleName, interruptSpeech } from "@/lib/utils";
+import { getRoleName, interruptSpeech } from "@/lib";
 import { notifyError } from "@/services/sentry";
 import { useInterviewApi } from "@/services/api";
 import { Message } from "./types";
+import {
+  buildUserMessage,
+  useProcessAIResponse,
+  useProcessVoiceInput,
+} from "./utils";
 
 const Chat = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { sendMessage } = useInterviewApi();
+  const processAIResponse = useProcessAIResponse();
+  const processVoiceInput = useProcessVoiceInput();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -26,42 +33,17 @@ const Chat = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   // const audioChunksRef = useRef<Blob[]>([]);
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/public/auth");
-    }
-  }, [user, navigate]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const processAIResponse = useCallback(async (responseText: string) => {
-    const textToUse =
-      responseText || "I'm processing your response. Please give me a moment.";
-
-    setMessages((prev) => [
-      ...prev,
-      buildUserMessage({ role: "assistant", content: textToUse }) as Message,
-    ]);
-
-    // Add a small delay to ensure the message is rendered before speaking
-    setTimeout(() => {
-      speakText(textToUse);
-    }, 100);
-  }, []);
-
   const processSendMessage = useCallback(
     async (message: string) => {
       try {
         setIsProcessingARequest(true);
 
-        // Interrupt any ongoing speech before sending a new message
         interruptSpeech();
 
         const result = await sendMessage.mutateAsync(message);
 
-        await processAIResponse(result?.text);
+        const aiMessage = await processAIResponse(result?.text);
+        setMessages((prev) => [...prev, aiMessage]);
       } catch (error) {
         notifyError("Error sending message:", error);
       } finally {
@@ -72,16 +54,6 @@ const Chat = () => {
     [sendMessage, processAIResponse]
   );
 
-  useEffect(() => {
-    processSendMessage("start");
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      interruptSpeech();
-    };
-  }, []);
-
   const requestMicrophoneAccess = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -89,14 +61,17 @@ const Chat = () => {
       toast({
         title: "Microphone enabled",
         description: "You can now use voice to communicate",
+        duration: 1000,
       });
       // Stop the stream immediately, we'll create a new one when recording
       stream.getTracks().forEach((track) => track.stop());
     } catch (error) {
+      notifyError("Microphone access error:", error);
       toast({
         title: "Microphone access denied",
         description: "Please allow microphone access to use voice features",
         variant: "destructive",
+        duration: 1000,
       });
     }
   };
@@ -129,11 +104,12 @@ const Chat = () => {
           const transcript =
             event.results[event.results.length - 1][0].transcript.trim();
 
-          await processVoiceInput(transcript);
+          const userMessage = await processVoiceInput(transcript);
+          setMessages((prev) => [...prev, userMessage]);
 
           setIsTyping(true);
 
-          processSendMessage(transcript);
+          if (transcript) processSendMessage(transcript);
         };
 
         recognition.onerror = (err) =>
@@ -204,6 +180,7 @@ const Chat = () => {
       toast({
         title: "Recording...",
         description: "Speak your answer",
+        duration: 1000,
       });
     } catch (error) {
       notifyError("Recording failed:", error);
@@ -211,6 +188,7 @@ const Chat = () => {
         title: "Recording failed",
         description: "Could not start recording",
         variant: "destructive",
+        duration: 1000,
       });
     }
   };
@@ -222,42 +200,40 @@ const Chat = () => {
     setIsRecording(false);
   };
 
-  const processVoiceInput = async (transcription: string) => {
-    setMessages((prev) => [
-      ...prev,
-      buildUserMessage({ role: "user", content: transcription }) as Message,
-    ]);
-  };
-
-  const buildUserMessage = ({
-    role,
-    content,
-  }: {
-    role: string;
-    content: string;
-  }) => {
-    return {
-      id: Date.now().toString(),
-      role,
-      content,
-      timestamp: new Date(),
-      played: true,
-    };
-  };
-
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!input.trim()) return;
 
-    setMessages((prev) => [
-      ...prev,
-      buildUserMessage({ role: "user", content: input }) as Message,
-    ]);
+    const userMessage = buildUserMessage({
+      role: "user",
+      content: input,
+    }) as Message;
+    setMessages((prev) => [...prev, userMessage]);
     processSendMessage(input);
 
     setInput("");
   };
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/public/auth");
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    processSendMessage("start");
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      interruptSpeech();
+    };
+  }, []);
 
   if (!user) return null;
 
