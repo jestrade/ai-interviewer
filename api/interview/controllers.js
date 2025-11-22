@@ -13,7 +13,7 @@ const genAI = new GoogleGenAI({ apiKey });
 export async function handleInterview(req, res) {
   try {
     const audioBuffer = req.file?.buffer;
-    const userText = req.body?.text || "";
+    const userText = req.body?.message || "";
 
     if (!req.session.interviewHistory) {
       throw new Error("History missing");
@@ -54,7 +54,6 @@ export async function handleInterview(req, res) {
         systemInstruction: getSystemPrompt(req.session.role),
       },
     });
-
     const replyText = result.text;
 
     req.session.interviewHistory.push({
@@ -73,6 +72,6 @@ export async function handleInterview(req, res) {
 export const endInterview = (req, res) => {
   req.session.interviewHistory = [];
   res.json({
-    text: "Interview ended",
+    message: "Interview ended",
   });
 };
