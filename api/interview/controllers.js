@@ -11,7 +11,6 @@ if (!apiKey) {
 const genAI = new GoogleGenAI({ apiKey });
 
 export async function handleInterview(req, res) {
-  return res.send({ text: "Interview started" });
   try {
     const audioBuffer = req.file?.buffer;
     const userText = req.body?.message || "";
