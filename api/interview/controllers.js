@@ -1,6 +1,6 @@
 import config from "../../config/index.js";
 import { GoogleGenAI } from "@google/genai";
-import { getSystemPrompt } from "../../lib/prompts.js";
+import { getSystemPrompt } from "../../data_models/prompts.js";
 
 const apiKey = config.llm.gemini.apiKey;
 
