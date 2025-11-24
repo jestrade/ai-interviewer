@@ -53,7 +53,7 @@ const Auth = () => {
           <Button
             onClick={() => signInWithGoogle(role)}
             disabled={isLoading || !role}
-            className="w-full h-12 bg-white hover:bg-gray-50 text-gray-900 border border-border shadow-sm transition-all duration-300 hover:shadow-soft"
+            className="w-full h-12 bg-white text-gray-900 hover:bg-gray-50 hover:text-blue-300 border border-border shadow-sm transition-all duration-300 hover:shadow-soft hover:ring-2 hover:ring-blue-300/50 hover:ring-offset-[1px] cursor-pointer"
             variant="outline"
           >
             {isLoading ? (

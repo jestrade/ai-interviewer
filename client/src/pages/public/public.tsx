@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import Auth from "../../components/auth";
+import Auth from "../../components/auth/auth";
 
 const Public = () => {
   return (

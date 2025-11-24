@@ -18,10 +18,9 @@ export const buildUserMessage = ({
   };
 };
 
-export const useProcessAIResponse = () => {
+export const useProcessResponse = () => {
   return useCallback(async (responseText: string) => {
-    const textToUse =
-      responseText || "I'm processing your response. Please give me a moment.";
+    const textToUse = responseText;
 
     const aiMessage: Message = {
       id: Date.now().toString(),

@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Public from "../public";
-import Private from "../private";
+import Public from "../public/public";
+import Private from "../private/private";
 import NotFound from "../not-found";
 import { initSentry } from "@/services/sentry";
 import { useAuth } from "@/contexts/auth/hooks";

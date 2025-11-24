@@ -15,7 +15,7 @@ import { Message } from "./types";
 import { INITIAL_MESSAGE } from "./constants";
 import {
   buildUserMessage,
-  useProcessAIResponse,
+  useProcessResponse,
   useProcessVoiceInput,
 } from "./utils";
 
@@ -23,8 +23,8 @@ const Chat = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { sendMessage } = useInterviewApi();
-  const processAIResponse = useProcessAIResponse();
+  const { sendMessage, endInterview } = useInterviewApi();
+  const processResponse = useProcessResponse();
   const processVoiceInput = useProcessVoiceInput();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -32,6 +32,7 @@ const Chat = () => {
   const [isProcessingARequest, setIsProcessingARequest] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isMicEnabled, setIsMicEnabled] = useState(false);
+  const [isEnded, setIsEnded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   // const audioChunksRef = useRef<Blob[]>([]);
@@ -45,7 +46,7 @@ const Chat = () => {
 
         const result = await sendMessage.mutateAsync(message);
 
-        const aiMessage = await processAIResponse(result?.text);
+        const aiMessage = await processResponse(result?.text);
         setMessages((prev) => [...prev, aiMessage]);
       } catch (error) {
         notifyError("Error sending message:", error);
@@ -54,7 +55,7 @@ const Chat = () => {
         setIsTyping(false);
       }
     },
-    [sendMessage, processAIResponse]
+    [sendMessage, processResponse]
   );
 
   const requestMicrophoneAccess = async () => {
@@ -78,6 +79,22 @@ const Chat = () => {
       });
     }
   };
+
+  const handleEndInterview = useCallback(async () => {
+    try {
+      await endInterview.mutateAsync();
+      setIsEnded(true);
+      toast({
+        title: "Interview ended",
+        description: "You can start a new interview by refreshing the page",
+        duration: 10000,
+      });
+      const aiMessage = await processResponse("The interview has ended ✅");
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      notifyError("Error ending interview:", error);
+    }
+  }, [endInterview, toast, notifyError]);
 
   const startRecording = async () => {
     if (!isMicEnabled) {
@@ -167,7 +184,7 @@ const Chat = () => {
 
           const data = await response.json();
 
-          await processAIResponse(data.message);
+          await processResponse(data.message);
           speakText(data.message);
         } catch (error) {
           notifyError("Error sending audio or processing response:", error);
@@ -399,6 +416,7 @@ const Chat = () => {
                   variant="outline"
                   size="sm"
                   className="border-primary/50 hover:bg-primary/10"
+                  disabled={isEnded}
                 >
                   Enable Mic
                 </Button>
@@ -419,7 +437,7 @@ const Chat = () => {
                 <Button
                   type="button"
                   onClick={startRecording}
-                  disabled={isTyping}
+                  disabled={isTyping || isEnded}
                   className="h-12 px-4 bg-secondary hover:opacity-90 shadow-soft transition-all duration-300 hover:shadow-medium"
                 >
                   <Mic className="w-5 h-5" />
@@ -435,7 +453,7 @@ const Chat = () => {
                     : "Type your response or use voice..."
                 }
                 className="flex-1 h-12 bg-background border-border/50 focus-visible:ring-primary transition-all duration-300"
-                disabled={isTyping || isRecording || isProcessingARequest}
+                disabled={isTyping || isRecording || isProcessingARequest || isEnded}
               />
 
               <Button
@@ -444,14 +462,15 @@ const Chat = () => {
                   !input.trim() ||
                   isTyping ||
                   isRecording ||
-                  isProcessingARequest
+                  isProcessingARequest ||
+                  isEnded
                 }
                 className="h-12 px-6 bg-gradient-primary hover:opacity-90 shadow-soft transition-all duration-300 hover:shadow-medium"
               >
                 {isTyping ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <Send className="w-5 h-5" />
+                  <Send className="w-5 h-5" aria-label="Send" />
                 )}
               </Button>
             </form>

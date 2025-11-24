@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth/hooks";
-import Chat from "../../components/chat";
+import Chat from "../../components/chat/chat";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 

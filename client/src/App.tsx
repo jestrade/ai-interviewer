@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./contexts/auth";
-import Root from "./pages/root";
+import Root from "./pages/root/root";
 import { initSentry } from "@/services/sentry";
 
 const queryClient = new QueryClient();
