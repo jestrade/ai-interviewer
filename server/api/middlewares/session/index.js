@@ -1,5 +1,5 @@
 import session from "express-session";
-import config from "../../config/index.js";
+import config from "../../../config/index.js";
 
 const sessionMiddleware = () =>
   session({
