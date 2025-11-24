@@ -45,6 +45,7 @@ const Chat = () => {
         interruptSpeech();
 
         const result = await sendMessage.mutateAsync(message);
+        debugger;
 
         const aiMessage = await processResponse(result?.text);
         setMessages((prev) => [...prev, aiMessage]);
@@ -94,7 +95,7 @@ const Chat = () => {
     } catch (error) {
       notifyError("Error ending interview:", error);
     }
-  }, [endInterview, toast, notifyError]);
+  }, [endInterview, toast, processResponse]);
 
   const startRecording = async () => {
     if (!isMicEnabled) {
@@ -453,7 +454,9 @@ const Chat = () => {
                     : "Type your response or use voice..."
                 }
                 className="flex-1 h-12 bg-background border-border/50 focus-visible:ring-primary transition-all duration-300"
-                disabled={isTyping || isRecording || isProcessingARequest || isEnded}
+                disabled={
+                  isTyping || isRecording || isProcessingARequest || isEnded
+                }
               />
 
               <Button
