@@ -1,15 +1,18 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/contexts/auth/hooks";
 import { Send, Loader2, Mic, MicOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth/hooks";
 import { getRoleName, interruptSpeech } from "@/lib";
 import { notifyError } from "@/services/sentry";
 import { useInterviewApi } from "@/services/api";
+
 import { Message } from "./types";
+import { INITIAL_MESSAGE } from "./constants";
 import {
   buildUserMessage,
   useProcessAIResponse,
@@ -63,7 +66,7 @@ const Chat = () => {
         description: "You can now use voice to communicate",
         duration: 1000,
       });
-      // Stop the stream immediately, we'll create a new one when recording
+      // Stop the stream immediately, and create a new one when recording
       stream.getTracks().forEach((track) => track.stop());
     } catch (error) {
       notifyError("Microphone access error:", error);
@@ -87,7 +90,10 @@ const Chat = () => {
       // 1. Setup Web Speech Recognition
       // -------------------------------
       const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).SpeechRecognition ||
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).webkitSpeechRecognition;
 
       if (!SpeechRecognition) {
         console.warn("Web Speech API not supported");
@@ -226,7 +232,7 @@ const Chat = () => {
   }, [messages]);
 
   useEffect(() => {
-    processSendMessage("start");
+    processSendMessage(INITIAL_MESSAGE);
   }, []);
 
   useEffect(() => {
