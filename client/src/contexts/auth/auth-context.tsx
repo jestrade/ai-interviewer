@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(false);
   }, []);
 
-  const signInWithGoogle = async (role: string) => {
+  const signInWithDevMode = async (role: string) => {
     setIsLoading(true);
 
     // bypass if dev mode
@@ -65,9 +65,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } catch (error) {
         notifyError("Error initializing interview:", error);
       }
-
-      return;
     }
+
+    setIsLoading(false);
+
+    return;
+  };
+
+  const signInWithGoogle = async (role: string) => {
+    setIsLoading(true);
 
     signInWithPopup(auth, provider)
       .then(async (result) => {
@@ -122,7 +128,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signInWithGoogle, logOut }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, signInWithGoogle, signInWithDevMode, logOut }}
+    >
       {children}
     </AuthContext.Provider>
   );

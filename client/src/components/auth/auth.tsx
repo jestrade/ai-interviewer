@@ -23,7 +23,7 @@ import Logo from "@/assets/img/logo.svg";
 import GoogleLogo from "@/assets/img/google-logo.svg";
 
 const Auth = () => {
-  const { user, isLoading, signInWithGoogle } = useAuth();
+  const { user, isLoading, signInWithGoogle, signInWithDevMode } = useAuth();
   const [role, setRole] = useState<string>("");
   const navigate = useNavigate();
 
@@ -108,7 +108,7 @@ const Auth = () => {
           {config.mode.isDevelopment ? (
             <LoginButton
               isLoading={isLoading}
-              signInFunction={signInWithGoogle}
+              signInFunction={signInWithDevMode}
               role={role}
               text={"Continue with fake login (only dev mode)"}
               logo={Logo}

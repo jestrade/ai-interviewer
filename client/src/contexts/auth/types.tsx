@@ -10,5 +10,6 @@ export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   signInWithGoogle: (role: string) => Promise<void>;
+  signInWithDevMode: (role: string) => Promise<void>;
   logOut: () => Promise<void>;
 }
