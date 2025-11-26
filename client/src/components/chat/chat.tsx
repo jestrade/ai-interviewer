@@ -45,7 +45,6 @@ const Chat = () => {
         interruptSpeech();
 
         const result = await sendMessage.mutateAsync(message);
-        debugger;
 
         const aiMessage = await processResponse(result?.text);
         setMessages((prev) => [...prev, aiMessage]);

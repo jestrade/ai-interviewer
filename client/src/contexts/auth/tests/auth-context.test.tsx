@@ -1,6 +1,6 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
 
-import { AuthProvider } from "../auth-context";
+import AuthProvider from "../provider";
 import { useAuth } from "../hooks";
 
 // Import the mocked modules at the top
