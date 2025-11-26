@@ -1,67 +1,44 @@
-import config from "../../../config/index.js";
-import { GoogleGenAI } from "@google/genai";
-import { getSystemPrompt } from "../../../data_models/prompts.js";
-
-const apiKey = config.llm.gemini.apiKey;
-
-if (!apiKey) {
-  console.error("GEMINI_API_KEY is not set in environment variables.");
-}
-
-const genAI = new GoogleGenAI({ apiKey });
+import { processInterviewMessage } from "../../../services/index.js";
+import { END_INTERVIEW_RESPONSES } from "../../../constants.js";
+import { INTERVIEW_STATUS, CODES } from "../../../constants.js";
 
 export async function handleInterview(req, res) {
   try {
     const audioBuffer = req.file?.buffer;
     const userText = req.body?.message || "";
-
-    if (!req.session.interviewHistory) {
-      throw new Error("History missing");
-    }
-    if (!req.session.role) {
-      throw new Error("Role missing");
-    }
-
-    const parts = [];
-
-    if (userText) {
-      parts.push({ text: userText });
-    } else if (audioBuffer) {
-      parts.push({
-        inline_data: {
-          mime_type: "audio/webm",
-          data: audioBuffer.toString("base64"),
-        },
-      });
-    } else {
-      console.log("Missing audio file or text input");
-      return res
-        .status(400)
-        .json({ error: "Missing audio file or text input" });
-    }
-
+    // update context
     req.session.interviewHistory.push({
       role: "user",
-      parts: parts,
+      parts: [{ text: userText }],
     });
 
-    const userPrompt = JSON.stringify(req.session.interviewHistory);
+    const replyText = await processInterviewMessage(
+      audioBuffer,
+      userText,
+      req.session.interviewHistory,
+      req.session.interviewStatus,
+      req.session.role,
+      req.session
+    );
 
-    const result = await genAI.models.generateContent({
-      model: config.llm.gemini.model,
-      contents: userPrompt,
-      config: {
-        systemInstruction: getSystemPrompt(req.session.role),
-      },
-    });
-    const replyText = result.text;
-
+    // update context
     req.session.interviewHistory.push({
       role: "model",
       parts: [{ text: replyText }],
     });
+
+    let code = null;
+    // end interview
+    if (END_INTERVIEW_RESPONSES.some((item) => replyText.includes(item))) {
+      req.session.interviewHistory = [];
+      req.session.role = null;
+      req.session.interviewStatus = INTERVIEW_STATUS.ENDED;
+      code = CODES.END_INTERVIEW;
+    }
+
     res.json({
       text: replyText,
+      code,
     });
   } catch (err) {
     console.error("AI interview error:", err);
@@ -69,9 +46,20 @@ export async function handleInterview(req, res) {
   }
 }
 
-export const endInterview = (req, res) => {
-  req.session.interviewHistory = [];
-  res.json({
-    message: "Interview ended",
-  });
+export const endInterview = async (req, res) => {
+  // end interview
+  try {
+    req.session.interviewHistory = [];
+    req.session.role = null;
+    req.session.interviewStatus = INTERVIEW_STATUS.ENDED;
+
+    const message = "Interview ended.";
+    res.json({
+      text: message,
+      code: CODES.END_INTERVIEW,
+    });
+  } catch (error) {
+    console.error("Error ending interview:", error);
+    res.status(500).json({ error: "Failed to end interview" });
+  }
 };

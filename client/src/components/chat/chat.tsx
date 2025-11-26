@@ -19,10 +19,14 @@ import {
   useProcessVoiceInput,
 } from "./utils";
 
+const CODES = {
+  END_INTERVIEW: "end-interview",
+};
+
 const Chat = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { toast, dismiss: dismissToast } = useToast();
   const { sendMessage, endInterview } = useInterviewApi();
   const processResponse = useProcessResponse();
   const processVoiceInput = useProcessVoiceInput();
@@ -45,6 +49,15 @@ const Chat = () => {
         interruptSpeech();
 
         const result = await sendMessage.mutateAsync(message);
+
+        if (result.code === CODES.END_INTERVIEW) {
+          setIsEnded(true);
+          toast({
+            title: "Interview ended",
+            description: "You can start a new interview by refreshing the page",
+            duration: 10000,
+          });
+        }
 
         const aiMessage = await processResponse(result?.text);
         setMessages((prev) => [...prev, aiMessage]);
@@ -255,6 +268,7 @@ const Chat = () => {
   useEffect(() => {
     return () => {
       interruptSpeech();
+      dismissToast();
     };
   }, []);
 
@@ -402,83 +416,85 @@ const Chat = () => {
       </div>
 
       {/* Input */}
-      <div className="border-t border-border/50 bg-card/80 backdrop-blur-sm shadow-soft">
-        <div className="max-w-5xl mx-auto px-4 py-4">
-          <div className="flex flex-col gap-3">
-            {!isMicEnabled && (
-              <div className="bg-muted/50 border border-border/50 rounded-lg p-3 flex items-center gap-3">
-                <Mic className="w-5 h-5 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground flex-1">
-                  Enable your microphone to use voice responses
-                </p>
-                <Button
-                  onClick={requestMicrophoneAccess}
-                  variant="outline"
-                  size="sm"
-                  className="border-primary/50 hover:bg-primary/10"
-                  disabled={isEnded}
-                >
-                  Enable Mic
-                </Button>
-              </div>
-            )}
-
-            <form onSubmit={handleSendMessage} className="flex gap-3">
-              {isRecording ? (
-                <Button
-                  type="button"
-                  onClick={stopRecording}
-                  className="h-12 px-6 bg-destructive hover:bg-destructive/90 animate-pulse shadow-soft hover:shadow-medium"
-                >
-                  <MicOff className="w-5 h-5 mr-2" />
-                  Stop Recording
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={startRecording}
-                  disabled={isTyping || isEnded}
-                  className="h-12 px-4 bg-secondary hover:opacity-90 shadow-soft transition-all duration-300 hover:shadow-medium"
-                >
-                  <Mic className="w-5 h-5" />
-                </Button>
+      {isEnded ? null : (
+        <div className="border-t border-border/50 bg-card/80 backdrop-blur-sm shadow-soft">
+          <div className="max-w-5xl mx-auto px-4 py-4">
+            <div className="flex flex-col gap-3">
+              {!isMicEnabled && (
+                <div className="bg-muted/50 border border-border/50 rounded-lg p-3 flex items-center gap-3">
+                  <Mic className="w-5 h-5 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground flex-1">
+                    Enable your microphone to use voice responses
+                  </p>
+                  <Button
+                    onClick={requestMicrophoneAccess}
+                    variant="outline"
+                    size="sm"
+                    className="border-primary/50 hover:bg-primary/10"
+                    disabled={isEnded}
+                  >
+                    Enable Mic
+                  </Button>
+                </div>
               )}
 
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={
-                  isRecording
-                    ? "Recording... Click 'Stop Recording' when done"
-                    : "Type your response or use voice..."
-                }
-                className="flex-1 h-12 bg-background border-border/50 focus-visible:ring-primary transition-all duration-300"
-                disabled={
-                  isTyping || isRecording || isProcessingARequest || isEnded
-                }
-              />
-
-              <Button
-                type="submit"
-                disabled={
-                  !input.trim() ||
-                  isTyping ||
-                  isRecording ||
-                  isProcessingARequest ||
-                  isEnded
-                }
-                className="h-12 px-6 bg-gradient-primary hover:opacity-90 shadow-soft transition-all duration-300 hover:shadow-medium"
-              >
-                {isTyping ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+              <form onSubmit={handleSendMessage} className="flex gap-3">
+                {isRecording ? (
+                  <Button
+                    type="button"
+                    onClick={stopRecording}
+                    className="h-12 px-6 bg-destructive hover:bg-destructive/90 animate-pulse shadow-soft hover:shadow-medium"
+                  >
+                    <MicOff className="w-5 h-5 mr-2" />
+                    Stop Recording
+                  </Button>
                 ) : (
-                  <Send className="w-5 h-5" aria-label="Send" />
+                  <Button
+                    type="button"
+                    onClick={startRecording}
+                    disabled={isTyping || isEnded}
+                    className="h-12 px-4 bg-secondary hover:opacity-90 shadow-soft transition-all duration-300 hover:shadow-medium"
+                  >
+                    <Mic className="w-5 h-5" />
+                  </Button>
                 )}
-              </Button>
-            </form>
+
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={
+                    isRecording
+                      ? "Recording... Click 'Stop Recording' when done"
+                      : "Type your response or use voice..."
+                  }
+                  className="flex-1 h-12 bg-background border-border/50 focus-visible:ring-primary transition-all duration-300"
+                  disabled={
+                    isTyping || isRecording || isProcessingARequest || isEnded
+                  }
+                />
+
+                <Button
+                  type="submit"
+                  disabled={
+                    !input.trim() ||
+                    isTyping ||
+                    isRecording ||
+                    isProcessingARequest ||
+                    isEnded
+                  }
+                  className="h-12 px-6 bg-gradient-primary hover:opacity-90 shadow-soft transition-all duration-300 hover:shadow-medium"
+                >
+                  {isTyping ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5" aria-label="Send" />
+                  )}
+                </Button>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 };

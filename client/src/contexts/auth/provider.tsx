@@ -46,19 +46,18 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // bypass if dev mode
     if (config.mode.isDevelopment) {
-      const userData = {
-        id: "dev-mode-user-id",
-        email: "dev-mode-user@email.com",
-        name: "dev-mode-user-name",
-        avatar: null,
-        role,
-      };
-
-      setUser(userData);
-      localStorage.setItem("role", role);
-
       try {
         await authenticate.mutateAsync(role);
+        const userData = {
+          id: "dev-mode-user-id",
+          email: "dev-mode-user@email.com",
+          name: "dev-mode-user-name",
+          avatar: null,
+          role,
+        };
+
+        setUser(userData);
+        localStorage.setItem("role", role);
       } catch (error) {
         notifyError("Error initializing interview:", error);
       }
