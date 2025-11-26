@@ -13,6 +13,7 @@ import { useAuthApi } from "../../services/api";
 import { User, AuthContextType } from "./types";
 
 import { notifyError } from "@/services/sentry";
+import config from "@/config";
 
 const provider = new GoogleAuthProvider();
 const auth = getAuth(app);
@@ -45,6 +46,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithGoogle = async (role: string) => {
     setIsLoading(true);
+
+    // bypass if dev mode
+    if (config.mode.isDevelopment) {
+      const userData = {
+        id: "dev-mode-user-id",
+        email: "dev-mode-user@email.com",
+        name: "dev-mode-user-name",
+        avatar: null,
+        role,
+      };
+
+      setUser(userData);
+      localStorage.setItem("role", role);
+
+      try {
+        await authenticate.mutateAsync(role);
+      } catch (error) {
+        notifyError("Error initializing interview:", error);
+      }
+
+      return;
+    }
+
     signInWithPopup(auth, provider)
       .then(async (result) => {
         const user = result.user;
