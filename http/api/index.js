@@ -5,6 +5,6 @@ import authenticateRouter from "./authenticate/routes.js";
 const api = Router();
 
 api.use("/interview", interviewRouter);
-api.use("/authenticate", authenticateRouter);
+api.use("/init", authenticateRouter);
 
 export default api;
