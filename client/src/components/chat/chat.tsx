@@ -27,7 +27,7 @@ const Chat = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast, dismiss: dismissToast } = useToast();
-  const { sendMessage, endInterview } = useInterviewApi();
+  const { sendMessage } = useInterviewApi();
   const processResponse = useProcessResponse();
   const processVoiceInput = useProcessVoiceInput();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -43,6 +43,7 @@ const Chat = () => {
 
   const processSendMessage = useCallback(
     async (message: string) => {
+      setIsTyping(true);
       try {
         setIsProcessingARequest(true);
 
@@ -93,22 +94,6 @@ const Chat = () => {
     }
   };
 
-  const handleEndInterview = useCallback(async () => {
-    try {
-      await endInterview.mutateAsync();
-      setIsEnded(true);
-      toast({
-        title: "Interview ended",
-        description: "You can start a new interview by refreshing the page",
-        duration: 10000,
-      });
-      const aiMessage = await processResponse("The interview has ended ✅");
-      setMessages((prev) => [...prev, aiMessage]);
-    } catch (error) {
-      notifyError("Error ending interview:", error);
-    }
-  }, [endInterview, toast, processResponse]);
-
   const startRecording = async () => {
     if (!isMicEnabled) {
       await requestMicrophoneAccess();
@@ -142,8 +127,6 @@ const Chat = () => {
 
           const userMessage = await processVoiceInput(transcript);
           setMessages((prev) => [...prev, userMessage]);
-
-          setIsTyping(true);
 
           if (transcript) processSendMessage(transcript);
         };

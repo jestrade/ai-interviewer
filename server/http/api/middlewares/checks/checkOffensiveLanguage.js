@@ -24,7 +24,7 @@ export async function checkOffensiveLanguage(req, res, next) {
     req.session.interviewStatus = INTERVIEW_STATUS.ENDED;
 
     return res.json({
-      text: "Offensive language detected. Interview ended.",
+      text: "Offensive language detected. The interview has ended.",
       code: CODES.END_INTERVIEW,
     });
   }

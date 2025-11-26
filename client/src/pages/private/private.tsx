@@ -5,12 +5,15 @@ import { useAuth } from "@/contexts/auth/hooks";
 import Chat from "../../components/chat/chat";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useInterviewApi } from "@/services/api";
 
 const Private = () => {
   const { user, logOut } = useAuth();
   const navigate = useNavigate();
+  const { endInterview } = useInterviewApi();
 
   const handleSignOut = async () => {
+    await endInterview.mutateAsync();
     await logOut();
     navigate("/");
   };

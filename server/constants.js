@@ -11,10 +11,11 @@ export const END_INTERVIEW_RESPONSES = [
   "end the interview session",
   "conclude the interview",
   "interview is concluded",
+  "interview has ended",
 ];
 
 export const CODES = {
   END_INTERVIEW: "end-interview",
 };
 
-export const MAX_NUMBER_OF_QUESTIONS = 10;
+export const MAX_NUMBER_OF_QUESTIONS = 7;
