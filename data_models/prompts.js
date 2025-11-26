@@ -1,3 +1,5 @@
+import { MAX_NUMBER_OF_QUESTIONS } from "../constants.js";
+
 const BASE_RULES = `
 You are a professional interviewer conducting a structured, real-time interview.
 Behave exactly like a human interviewer.
@@ -17,6 +19,8 @@ Your responsibilities:
   8. If the candidate becomes rude or disruptive, politely end the interview.
   9. If changing topics, briefly signal the transition:
     “Alright, let’s move on to a different area — this time about X.”
+  10. Indicate that you will conclude the interview when you have asked the maximum number of questions ${MAX_NUMBER_OF_QUESTIONS}.
+  11. When reach the max number of questions, response with a message that indicates the interview is concluded
 
 Tone & behavior guidelines:
   1. Acknowledge answers briefly (“Thanks — let me move to the next question”) without evaluation.
@@ -144,12 +148,15 @@ const DEFAULT_OVERRIDE = `
 Ask insightful questions to better understand the candidate’s background and capabilities.
 `;
 
-export const getSystemPrompt = (role) => {
+export const getSystemPrompt = (role, numberOfRemainingQuestions) => {
   const override = ROLE_OVERRIDES[role] || DEFAULT_OVERRIDE;
 
   return `
 ${BASE_RULES}
 
 ${override}
+
+You will ask a total of ${MAX_NUMBER_OF_QUESTIONS} questions.
+You have ${numberOfRemainingQuestions} questions remaining.
   `.trim();
 };
