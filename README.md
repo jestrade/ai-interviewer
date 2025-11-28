@@ -8,11 +8,12 @@ A professional interview simulation platform that uses AI to conduct interactive
 - 🎯 Role-specific interview questions (Junior to Staff Engineer levels)
 - 🔄 Real-time AI-powered conversation
 - 🎨 Modern, responsive UI with dark/light mode
-- 🔒 Secure authentication with Firebase
+- 🔒 Secure authentication with Firebase (includes development mode)
 - 📊 Session persistence and management
 - 🎙️ Voice input with speech-to-text
 - 🎧 Text-to-speech for AI responses
 - 📱 Mobile-friendly interface
+- 🧪 Comprehensive test suite with Jest and React Testing Library
 
 ## Tech Stack
 
@@ -26,6 +27,7 @@ A professional interview simulation platform that uses AI to conduct interactive
 - 🔐 Firebase Authentication
 - 📦 pnpm for package management
 - 🎭 Framer Motion for animations
+- 🧪 Jest with React Testing Library for testing
 
 ### Backend
 
@@ -123,13 +125,17 @@ The frontend will be available at `http://localhost:5173`
 ## Usage
 
 1. Open the application in your browser at `http://localhost:5173`
-2. Sign in with your Google account
+2. Sign in with your Google account (development mode available for testing)
 3. Select your target role (Junior, Mid, Senior, or Staff Engineer)
 4. Choose your preferred input method (voice or text)
 5. The AI interviewer will guide you through the interview with role-specific questions
 6. Respond naturally - the AI will adapt to your answers
 7. Complete all questions to finish the interview
 8. Review your session summary and feedback
+
+### Development Mode
+
+For testing purposes, the application includes a development mode that bypasses Google authentication. This mode is automatically enabled in development environments and allows you to sign in directly with a role selection.
 
 ## Project Structure
 
@@ -143,16 +149,19 @@ ai-interviewer/
 │   │   │   ├── ui/         # Shadcn UI components
 │   │   │   └── ...
 │   │   ├── contexts/       # React contexts
+│   │   │   └── auth/       # Authentication context and tests
 │   │   ├── hooks/          # Custom React hooks
 │   │   ├── lib/            # Utility functions
 │   │   ├── pages/          # Page components
 │   │   │   ├── Auth.tsx    # Authentication page
 │   │   │   └── Chat.tsx    # Main interview interface
 │   │   ├── services/       # API services
+│   │   ├── tests/          # Test utilities and mocks
 │   │   ├── App.tsx         # Main app component
 │   │   └── main.tsx        # Entry point
 │   ├── .env.example        # Environment variables example
 │   ├── index.html          # HTML template
+│   ├── jest.config.js      # Jest testing configuration
 │   ├── package.json        # Dependencies and scripts
 │   └── tsconfig.json       # TypeScript config
 │
@@ -239,6 +248,54 @@ ai-interviewer/
   pnpm format
   ```
 
+### Testing
+
+The project includes a comprehensive test suite using Jest and React Testing Library.
+
+- Run all tests:
+  ```bash
+  npm test
+  ```
+- Run tests with coverage:
+  ```bash
+  npm run test:coverage
+  ```
+- Run tests in watch mode:
+  ```bash
+  npm run test:watch
+  ```
+- Run specific test file:
+  ```bash
+  npm test -- auth-context.test.tsx
+  ```
+
+#### Test Structure
+
+Tests are organized alongside the components they test:
+
+```
+src/
+├── contexts/
+│   └── auth/
+│       ├── tests/
+│       │   ├── auth-context.test.tsx
+│       │   ├── hooks.test.tsx
+│       │   └── types.test.tsx
+│       └── ...
+└── ...
+```
+
+#### Authentication Testing
+
+The authentication system includes comprehensive test coverage for:
+
+- Context provider behavior
+- Custom hooks (useAuth)
+- Type safety and interface compliance
+- Development mode authentication
+- Error handling and loading states
+- Runtime validation
+
 ## Troubleshooting
 
 - **CORS issues**: Ensure `VITE_API_BASE_URL` matches the backend address and includes the correct protocol
@@ -265,17 +322,33 @@ We welcome contributions! Here's how to get started:
    ```
 3. Make your changes and ensure tests pass
    ```bash
-   pnpm test
+   npm test
    ```
-4. Commit your changes with a descriptive message
+4. Run the linter and formatter
+   ```bash
+   pnpm lint
+   pnpm format
+   ```
+5. Commit your changes with a descriptive message
    ```bash
    git commit -m 'feat: add amazing feature'
    ```
-5. Push to the branch
+6. Push to the branch
    ```bash
    git push origin feature/amazing-feature
    ```
-6. Open a Pull Request with a clear description of changes
+7. Open a Pull Request with a clear description of changes
+
+### Testing Requirements
+
+All contributions must include appropriate tests:
+
+- New features should have unit tests
+- UI components should have accessibility tests
+- Authentication changes should include auth context tests
+- Bug fixes should include regression tests
+
+Ensure test coverage remains high and all tests pass before submitting a PR.
 
 ### Commit Message Guidelines
 
@@ -286,7 +359,7 @@ We use [Conventional Commits](https://www.conventionalcommits.org/):
 - `docs:` for documentation changes
 - `style:` for formatting changes
 - `refactor:` for code changes that neither fixes a bug nor adds a feature
-- `test:` for adding tests
+- `test:` for adding tests or fixing test issues
 - `chore:` for changes to the build process or auxiliary tools
 
 ## License
