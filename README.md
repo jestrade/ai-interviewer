@@ -63,7 +63,7 @@ cd server
 cp .env.example .env
 ```
 
-Edit the `.env` file with your configuration:
+The `.env.example` file contains all the required environment variables. Simply rename it to `.env` and update the values:
 
 ```env
 # Server Configuration
@@ -94,7 +94,7 @@ cd client
 cp .env.example .env
 ```
 
-Edit the `.env` file with your Firebase configuration:
+The `.env.example` file contains all the required environment variables. Simply rename it to `.env` and update the values:
 
 ```env
 # API Configuration
@@ -186,6 +186,8 @@ ai-interviewer/
 ```
 
 ## Environment Variables
+
+Both the client and server include `.env.example` files that can be used as templates. Simply copy or rename these files to `.env` and update the values with your actual configuration.
 
 ### Backend (server/.env)
 
@@ -298,6 +300,7 @@ The authentication system includes comprehensive test coverage for:
 
 ## Troubleshooting
 
+- **Environment setup**: Ensure you've copied `.env.example` to `.env` in both client and server directories
 - **CORS issues**: Ensure `VITE_API_BASE_URL` matches the backend address and includes the correct protocol
 - **Microphone access**: Check browser permissions and ensure no other app is using the microphone
 - **Firebase errors**: Verify your Firebase configuration and enable required services
