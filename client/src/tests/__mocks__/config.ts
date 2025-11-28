@@ -16,10 +16,9 @@ const config = {
   },
   mode: {
     isProduction: false,
-    isDevelopment: false,
+    isDevelopment: true,
     isStaging: false,
   },
 };
 
 export default config;
-

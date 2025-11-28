@@ -1,4 +1,5 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
+import { ReactNode } from "react";
 
 import AuthProvider from "../provider";
 import { useAuth } from "../hooks";
@@ -370,6 +371,116 @@ describe("AuthContext", () => {
     });
   });
 
+  describe("signInWithDevMode", () => {
+    beforeEach(() => {
+      // Reset mocks and modules before each test
+      jest.clearAllMocks();
+      jest.resetModules();
+    });
+
+    it("should handle successful dev mode sign in", async () => {
+      // Create a fresh wrapper to ensure clean state
+      const freshWrapper = ({ children }: { children: ReactNode }) => (
+        <AuthProvider>{children}</AuthProvider>
+      );
+
+      const { result } = renderHook(() => useAuth(), { wrapper: freshWrapper });
+
+      // Wrap the async operation in act
+      await act(async () => {
+        await result.current.signInWithDevMode("senior-software-engineer");
+      });
+
+      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        "role",
+        "senior-software-engineer"
+      );
+
+      await waitFor(() => {
+        expect(result.current.user).toEqual({
+          id: "dev-mode-user-id",
+          email: "dev-mode-user@email.com",
+          name: "dev-mode-user-name",
+          avatar: null,
+          role: "senior-software-engineer",
+        });
+      });
+
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it("should handle dev mode API authentication error", async () => {
+      // Mock the API to return an error
+      const mockAuthenticate = jest
+        .fn()
+        .mockRejectedValue(new Error("API Error"));
+      (ApiModule.useAuthApi as jest.Mock) = jest.fn().mockReturnValue({
+        authenticate: {
+          mutateAsync: mockAuthenticate,
+        },
+      });
+
+      const { notifyError } = jest.mocked(SentryModule);
+
+      // Create a fresh wrapper to ensure clean state
+      const freshWrapper = ({ children }: { children: ReactNode }) => (
+        <AuthProvider>{children}</AuthProvider>
+      );
+
+      const { result } = renderHook(() => useAuth(), { wrapper: freshWrapper });
+
+      // Wrap the async operation in act
+      await act(async () => {
+        await result.current.signInWithDevMode("junior-software-engineer");
+      });
+
+      expect(notifyError).toHaveBeenCalledWith(
+        "Error initializing interview:",
+        expect.any(Error)
+      );
+      // User should be null when authentication fails in dev mode
+      expect(result.current.user).toBeNull();
+    });
+
+    it("should set loading state during dev mode sign in process", async () => {
+      let resolveAuthenticate: ((value: unknown) => void) | null = null;
+      const mockAuthenticate = jest.fn().mockImplementation(() => {
+        return new Promise((resolve) => {
+          resolveAuthenticate = resolve;
+        });
+      });
+
+      (ApiModule.useAuthApi as jest.Mock) = jest.fn().mockReturnValue({
+        authenticate: {
+          mutateAsync: mockAuthenticate,
+        },
+      });
+
+      // Create a fresh wrapper to ensure clean state
+      const freshWrapper = ({ children }: { children: ReactNode }) => (
+        <AuthProvider>{children}</AuthProvider>
+      );
+
+      const { result } = renderHook(() => useAuth(), { wrapper: freshWrapper });
+
+      let signInPromise: Promise<void>;
+      await act(async () => {
+        signInPromise = result.current.signInWithDevMode(
+          "junior-software-engineer"
+        );
+      });
+
+      expect(result.current.isLoading).toBe(true);
+
+      await act(async () => {
+        resolveAuthenticate!({});
+        await signInPromise;
+      });
+
+      expect(result.current.isLoading).toBe(false);
+    });
+  });
+
   describe("logOut", () => {
     it("should handle successful logout", async () => {
       mockSignOut.mockResolvedValue(undefined);
@@ -472,8 +583,10 @@ describe("AuthContext", () => {
       expect(result.current).toHaveProperty("user");
       expect(result.current).toHaveProperty("isLoading");
       expect(result.current).toHaveProperty("signInWithGoogle");
+      expect(result.current).toHaveProperty("signInWithDevMode");
       expect(result.current).toHaveProperty("logOut");
       expect(typeof result.current.signInWithGoogle).toBe("function");
+      expect(typeof result.current.signInWithDevMode).toBe("function");
       expect(typeof result.current.logOut).toBe("function");
     });
   });

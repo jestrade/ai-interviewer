@@ -73,8 +73,10 @@ describe("useAuth Hook", () => {
       expect(result.current).toHaveProperty("user");
       expect(result.current).toHaveProperty("isLoading");
       expect(result.current).toHaveProperty("signInWithGoogle");
+      expect(result.current).toHaveProperty("signInWithDevMode");
       expect(result.current).toHaveProperty("logOut");
       expect(typeof result.current.signInWithGoogle).toBe("function");
+      expect(typeof result.current.signInWithDevMode).toBe("function");
       expect(typeof result.current.logOut).toBe("function");
     });
 
@@ -89,6 +91,9 @@ describe("useAuth Hook", () => {
       );
       expect(typeof result1.current.signInWithGoogle).toBe(
         typeof result2.current.signInWithGoogle
+      );
+      expect(typeof result1.current.signInWithDevMode).toBe(
+        typeof result2.current.signInWithDevMode
       );
       expect(typeof result1.current.logOut).toBe(typeof result2.current.logOut);
     });
@@ -118,6 +123,7 @@ describe("useAuth Hook", () => {
       ).toBe(true);
       expect(typeof result.current.isLoading).toBe("boolean");
       expect(typeof result.current.signInWithGoogle).toBe("function");
+      expect(typeof result.current.signInWithDevMode).toBe("function");
       expect(typeof result.current.logOut).toBe("function");
     });
   });

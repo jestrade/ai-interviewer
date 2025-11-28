@@ -71,6 +71,7 @@ describe("Auth Types", () => {
   describe("AuthContextType Interface", () => {
     it("should have correct structure", () => {
       const mockSignInWithGoogle = jest.fn();
+      const mockSignInWithDevMode = jest.fn();
       const mockLogOut = jest.fn();
       const mockUser: User = {
         id: "test-id",
@@ -84,34 +85,43 @@ describe("Auth Types", () => {
         user: mockUser,
         isLoading: false,
         signInWithGoogle: mockSignInWithGoogle,
+        signInWithDevMode: mockSignInWithDevMode,
         logOut: mockLogOut,
       };
 
       expect(authContext.user).toEqual(mockUser);
       expect(authContext.isLoading).toBe(false);
       expect(authContext.signInWithGoogle).toBe(mockSignInWithGoogle);
+      expect(authContext.signInWithDevMode).toBe(mockSignInWithDevMode);
       expect(authContext.logOut).toBe(mockLogOut);
     });
 
     it("should allow null user", () => {
       const mockSignInWithGoogle = jest.fn();
+      const mockSignInWithDevMode = jest.fn();
       const mockLogOut = jest.fn();
 
       const authContext: AuthContextType = {
         user: null,
         isLoading: true,
         signInWithGoogle: mockSignInWithGoogle,
+        signInWithDevMode: mockSignInWithDevMode,
         logOut: mockLogOut,
       };
 
       expect(authContext.user).toBeNull();
       expect(authContext.isLoading).toBe(true);
       expect(authContext.signInWithGoogle).toBe(mockSignInWithGoogle);
+      expect(authContext.signInWithDevMode).toBe(mockSignInWithDevMode);
       expect(authContext.logOut).toBe(mockLogOut);
     });
 
     it("should accept functions with correct signatures", () => {
       const mockSignInWithGoogle = async (role: string): Promise<void> => {
+        // Mock implementation
+      };
+
+      const mockSignInWithDevMode = async (role: string): Promise<void> => {
         // Mock implementation
       };
 
@@ -123,25 +133,30 @@ describe("Auth Types", () => {
         user: null,
         isLoading: false,
         signInWithGoogle: mockSignInWithGoogle,
+        signInWithDevMode: mockSignInWithDevMode,
         logOut: mockLogOut,
       };
 
       expect(typeof authContext.signInWithGoogle).toBe("function");
+      expect(typeof authContext.signInWithDevMode).toBe("function");
       expect(typeof authContext.logOut).toBe("function");
 
       // These should not cause type errors
       authContext.signInWithGoogle("test-role");
+      authContext.signInWithDevMode("test-role");
       authContext.logOut();
     });
 
     it("should handle different loading states", () => {
       const mockSignInWithGoogle = jest.fn();
+      const mockSignInWithDevMode = jest.fn();
       const mockLogOut = jest.fn();
 
       const loadingContext: AuthContextType = {
         user: null,
         isLoading: true,
         signInWithGoogle: mockSignInWithGoogle,
+        signInWithDevMode: mockSignInWithDevMode,
         logOut: mockLogOut,
       };
 
@@ -149,6 +164,7 @@ describe("Auth Types", () => {
         user: null,
         isLoading: false,
         signInWithGoogle: mockSignInWithGoogle,
+        signInWithDevMode: mockSignInWithDevMode,
         logOut: mockLogOut,
       };
 
@@ -196,6 +212,7 @@ describe("Auth Types", () => {
         },
         isLoading: false,
         signInWithGoogle: jest.fn(),
+        signInWithDevMode: jest.fn(),
         logOut: jest.fn(),
       };
 
@@ -266,6 +283,7 @@ describe("Auth Types", () => {
           (context.user === null || typeof context.user === "object") &&
           typeof context.isLoading === "boolean" &&
           typeof context.signInWithGoogle === "function" &&
+          typeof context.signInWithDevMode === "function" &&
           typeof context.logOut === "function"
         );
       };
@@ -274,13 +292,15 @@ describe("Auth Types", () => {
         user: null,
         isLoading: false,
         signInWithGoogle: jest.fn(),
+        signInWithDevMode: jest.fn(),
         logOut: jest.fn(),
       };
 
       const invalidContext = {
         user: null,
         isLoading: false,
-        // Missing functions
+        signInWithGoogle: jest.fn(),
+        // Missing signInWithDevMode and logOut
       };
 
       expect(validateAuthContext(validContext)).toBe(true);
