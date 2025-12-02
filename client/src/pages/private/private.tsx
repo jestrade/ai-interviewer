@@ -13,9 +13,14 @@ const Private = () => {
   const { endInterview } = useInterviewApi();
 
   const handleSignOut = async () => {
-    await endInterview.mutateAsync();
-    await logOut();
-    navigate("/");
+    try {
+      await endInterview.mutateAsync();
+    } catch (error) {
+      console.error("Error ending interview:", error);
+    } finally {
+      await logOut();
+      navigate("/");
+    }
   };
 
   if (!user) return null;

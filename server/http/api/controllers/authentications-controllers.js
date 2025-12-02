@@ -1,5 +1,5 @@
 import { INTERVIEW_STATUS } from "../../../constants.js";
-import { createAuditRecord } from "../../../services/auditService.js";
+import { createAuditRecord } from "../../../services/audits-service.js";
 import { COLLECTIONS } from "../../../constants.js";
 
 export const init = async (req, res) => {

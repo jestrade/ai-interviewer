@@ -27,3 +27,4 @@ dist-ssr
 
 coverage/
 firebaseServiceAccountKey.json
+firebase-service-account-key.json

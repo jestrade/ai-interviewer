@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { init } from "./controllers.js";
+import { init } from "../controllers/authentications-controllers.js";
 
 const app = Router();
 

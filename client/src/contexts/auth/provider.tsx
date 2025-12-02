@@ -22,7 +22,7 @@ const auth = getAuth(app);
 const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { authenticate } = useAuthApi();
+  const { authenticate, createUser } = useAuthApi();
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -49,6 +49,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const email = "dev-mode-user@email.com";
         await authenticate.mutateAsync({ email, role });
+        await createUser.mutateAsync({ email, name: "dev-mode-user-name" });
         const userData = {
           id: "dev-mode-user-id",
           email,
@@ -88,6 +89,10 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         try {
           await authenticate.mutateAsync({ email: user.email, role });
+          await createUser.mutateAsync({
+            email: user.email,
+            name: user.displayName,
+          });
         } catch (error) {
           notifyError("Error initializing interview:", error);
         }

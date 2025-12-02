@@ -1,7 +1,7 @@
-import { processInterviewMessage } from "../../../services/index.js";
+import { processInterviewMessage } from "../../../services/interviews-service.js";
 import { END_INTERVIEW_RESPONSES } from "../../../constants.js";
 import { INTERVIEW_STATUS, CODES } from "../../../constants.js";
-import { createAuditRecord } from "../../../services/auditService.js";
+import { createAuditRecord } from "../../../services/audits-service.js";
 import { COLLECTIONS, AUDIT_REASONS } from "../../../constants.js";
 
 export async function handleInterviewController(req, res) {
@@ -30,8 +30,12 @@ export async function handleInterviewController(req, res) {
     });
 
     let code = null;
+
+    console.log("replyText", replyText);
+
     // end interview
     if (END_INTERVIEW_RESPONSES.some((item) => replyText.includes(item))) {
+      console.log("END_INTERVIEW_RESPONSES", END_INTERVIEW_RESPONSES);
       await createAuditRecord({
         action: "end",
         reason: AUDIT_REASONS.ai,

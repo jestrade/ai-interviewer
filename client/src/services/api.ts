@@ -58,6 +58,11 @@ export const apiFunctions = {
     const response = await api.post("/init", { email, role });
     return response.data;
   },
+
+  createUser: async ({ email, name }: { email: string; name: string }) => {
+    const response = await api.post("/users", { email, name });
+    return response.data;
+  },
 };
 
 // React Query hooks for interview operations
@@ -82,6 +87,11 @@ export const useInterviewApi = () => ({
 export const useAuthApi = () => ({
   authenticate: useMutation({
     mutationFn: apiFunctions.authenticate,
+    gcTime: 0,
+  }),
+
+  createUser: useMutation({
+    mutationFn: apiFunctions.createUser,
     gcTime: 0,
   }),
 });
