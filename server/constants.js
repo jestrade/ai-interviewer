@@ -20,4 +20,15 @@ export const CODES = {
   ERROR: "error",
 };
 
+export const COLLECTIONS = {
+  users: "users",
+  interviews: "interviews",
+};
+
+export const AUDIT_REASONS = {
+  ai: "AI detection",
+  userRequest: "User request",
+  offensiveLanguage: "Offensive language",
+};
+
 export const MAX_NUMBER_OF_QUESTIONS = 7;

@@ -1,11 +1,21 @@
 import { INTERVIEW_STATUS } from "../../../constants.js";
+import { createAuditRecord } from "../../../services/auditService.js";
+import { COLLECTIONS } from "../../../constants.js";
 
 export const init = async (req, res) => {
   try {
+    const role = req.body?.role;
+
     req.session.interviewHistory = [];
-    req.session.role = req.body?.role;
+    req.session.role = role;
     req.session.interviewStatus = INTERVIEW_STATUS.IN_PROGRESS;
     req.session.numberOfQuestions = 0;
+
+    await createAuditRecord({
+      action: "start",
+      collection: COLLECTIONS.interviews,
+      user: { email: req.session.email, role },
+    });
 
     res.json({
       message: "Session started",

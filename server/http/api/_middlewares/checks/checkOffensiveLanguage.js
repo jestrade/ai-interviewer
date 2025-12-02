@@ -1,23 +1,22 @@
 import { INTERVIEW_STATUS, CODES } from "../../../../constants.js";
+import { createAuditRecord } from "../../../../services/auditService.js";
+import { COLLECTIONS, AUDIT_REASONS } from "../../../../constants.js";
+import config from "../../../../config/index.js";
 
-const OFFENSIVE_KEYWORDS = [
-  "fuck",
-  "shit",
-  "bitch",
-  "asshole",
-  "motherfucker",
-  "idiot",
-  "racist",
-  "nigger",
-  "spic",
-  "faggot",
-];
+const OFFENSIVE_KEYWORDS = config.offensiveKeywords;
 
 export async function checkOffensiveLanguage(req, res, next) {
   const text = req.body?.message || "";
   if (!text) return false;
   const normalized = text.toLowerCase();
   if (OFFENSIVE_KEYWORDS.some((word) => normalized.includes(word))) {
+    await createAuditRecord({
+      action: "end",
+      reason: AUDIT_REASONS.offensiveLanguage,
+      collection: COLLECTIONS.interviews,
+      user: { email: req.session.email, role: req.session.role },
+    });
+
     // end interview
     req.session.interviewHistory = [];
     req.session.role = null;

@@ -1,9 +1,9 @@
 import { readData, writeData } from "./firebase/dataAccess.js";
-
-const COLLECTION = "users";
+import { createAuditRecord } from "./auditService.js";
+import { COLLECTIONS } from "../constants.js";
 
 export const getUser = async ({ field, value }) => {
-  const data = await readData(COLLECTION, { field, value });
+  const data = await readData(COLLECTIONS.users, { field, value });
 
   if (!data) {
     return null;
@@ -16,9 +16,18 @@ export const createUser = async (userData) => {
   const user = await getUser({ field: "email", value: userData.email });
 
   if (user) {
+    await createAuditRecord({ action: "login", user: userData });
+
     return user;
   }
 
-  await writeData(COLLECTION, userData);
+  await writeData(COLLECTIONS.users, userData);
+
+  await createAuditRecord({
+    action: "create",
+    collection: COLLECTIONS.users,
+    user: userData,
+  });
+
   return userData;
 };
