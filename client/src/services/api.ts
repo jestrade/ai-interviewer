@@ -33,7 +33,7 @@ api.interceptors.response.use(
 // Direct API functions (for use with React Query)
 export const apiFunctions = {
   sendMessage: async (message: string) => {
-    const response = await api.post("/interview", { message });
+    const response = await api.post("/interviews", { message });
     return response.data;
   },
 
@@ -41,7 +41,7 @@ export const apiFunctions = {
     const formData = new FormData();
     formData.append("audio", audioBlob, "recording.webm");
 
-    const response = await api.post("/interview", formData, {
+    const response = await api.post("/interviews", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -50,7 +50,7 @@ export const apiFunctions = {
   },
 
   endInterview: async () => {
-    const response = await api.post("/interview/end");
+    const response = await api.post("/interviews/end");
     return response.data;
   },
 

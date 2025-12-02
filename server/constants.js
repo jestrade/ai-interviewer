@@ -16,6 +16,8 @@ export const END_INTERVIEW_RESPONSES = [
 
 export const CODES = {
   END_INTERVIEW: "end-interview",
+  CREATE_USER: "create-user",
+  ERROR: "error",
 };
 
 export const MAX_NUMBER_OF_QUESTIONS = 7;

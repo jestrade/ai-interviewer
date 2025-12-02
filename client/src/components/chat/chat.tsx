@@ -168,7 +168,7 @@ const Chat = () => {
         try {
           setIsProcessingARequest(false);
           const response = await fetch(
-            `${config.api.url}/interview`,
+            `${config.api.url}/interviews`,
             {
               method: "POST",
               body: formData,

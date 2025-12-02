@@ -2,7 +2,7 @@ import { processInterviewMessage } from "../../../services/index.js";
 import { END_INTERVIEW_RESPONSES } from "../../../constants.js";
 import { INTERVIEW_STATUS, CODES } from "../../../constants.js";
 
-export async function handleInterview(req, res) {
+export async function handleInterviewController(req, res) {
   try {
     const audioBuffer = req.file?.buffer;
     const userText = req.body?.message || "";
@@ -46,7 +46,7 @@ export async function handleInterview(req, res) {
   }
 }
 
-export const endInterview = async (req, res) => {
+export const endInterviewController = async (req, res) => {
   // end interview
   try {
     req.session.interviewHistory = [];
