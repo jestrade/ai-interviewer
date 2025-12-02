@@ -54,8 +54,8 @@ export const apiFunctions = {
     return response.data;
   },
 
-  authenticate: async (role: string) => {
-    const response = await api.post("/init", { role });
+  authenticate: async ({ email, role }: { email: string; role: string }) => {
+    const response = await api.post("/init", { email, role });
     return response.data;
   },
 };
