@@ -5,6 +5,6 @@ import { createUserController, getUserController } from "./controllers.js";
 const app = Router();
 
 app.post("/", createUserController);
-app.get("/:id", getUserController);
+app.get("/:field/:value", getUserController);
 
 export default app;
