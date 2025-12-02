@@ -1,5 +1,5 @@
 import { INTERVIEW_STATUS, CODES } from "../../../../constants.js";
-import { createAuditRecord } from "../../../../services/auditService.js";
+import { createAuditRecord } from "../../../../services/audits-service.js";
 import { COLLECTIONS, AUDIT_REASONS } from "../../../../constants.js";
 import config from "../../../../config/index.js";
 

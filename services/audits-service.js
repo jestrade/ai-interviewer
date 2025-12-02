@@ -1,4 +1,4 @@
-import { writeData } from "./firebase/dataAccess.js";
+import { writeData } from "./firebase/data-access.js";
 
 const COLLECTION = "audits";
 

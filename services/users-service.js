@@ -1,5 +1,5 @@
-import { readData, writeData } from "./firebase/dataAccess.js";
-import { createAuditRecord } from "./auditService.js";
+import { readData, writeData } from "./firebase/data-access.js";
+import { createAuditRecord } from "./audits-service.js";
 import { COLLECTIONS } from "../constants.js";
 
 export const getUser = async ({ field, value }) => {
