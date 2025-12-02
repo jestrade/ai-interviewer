@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/auth/hooks";
 import { getRoleName, interruptSpeech } from "@/lib";
 import { notifyError } from "@/services/sentry";
 import { useInterviewApi } from "@/services/api";
+import LaptopImage from "@/assets/img/laptop.svg";
 
 import { Message } from "./types";
 import { INITIAL_MESSAGE } from "./constants";
@@ -55,7 +56,7 @@ const Chat = () => {
           setIsEnded(true);
           toast({
             title: "Interview ended",
-            description: "You can start a new interview by refreshing the page",
+            description: "Please log out to start a new interview",
             duration: 10000,
           });
         }
@@ -262,27 +263,24 @@ const Chat = () => {
       <div className="bg-card border-b border-border/50 py-8">
         <div className="max-w-5xl mx-auto px-4 flex flex-col items-center">
           <div className="relative">
-            <Avatar className="w-32 h-32 border-4 border-primary/30 shadow-medium">
-              <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
-                <svg
-                  className="w-16 h-16 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-            </Avatar>
-            {isTyping && (
-              <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-secondary rounded-full flex items-center justify-center shadow-soft animate-pulse">
-                <Mic className="w-4 h-4 text-white" />
-              </div>
+            {isTyping ? (
+              <>
+                <Avatar className="w-32 h-32 border-4 border-primary/30 shadow-medium animate-pulse">
+                  <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                    <img src={LaptopImage} alt="Laptop" className="w-16 h-16" />
+                  </div>
+                </Avatar>
+
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-secondary rounded-full flex items-center justify-center shadow-soft animate-bounce">
+                  <Mic className="w-4 h-4 text-white" />
+                </div>
+              </>
+            ) : (
+              <Avatar className="w-32 h-32 border-4 border-primary/30 shadow-medium">
+                <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                  <img src={LaptopImage} alt="Laptop" className="w-16 h-16" />
+                </div>
+              </Avatar>
             )}
           </div>
           <h2 className="mt-4 text-xl font-semibold text-foreground">
