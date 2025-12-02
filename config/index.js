@@ -20,6 +20,9 @@ const config = {
       model: process.env.GEMINI_MODEL,
     },
   },
+  offensiveKeywords: process.env.OFFESNSIVE_KEYWORDS.split(",").map((word) =>
+    word.trim()
+  ),
 };
 
 export default config;

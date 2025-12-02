@@ -1,6 +1,8 @@
 import { processInterviewMessage } from "../../../services/index.js";
 import { END_INTERVIEW_RESPONSES } from "../../../constants.js";
 import { INTERVIEW_STATUS, CODES } from "../../../constants.js";
+import { createAuditRecord } from "../../../services/auditService.js";
+import { COLLECTIONS, AUDIT_REASONS } from "../../../constants.js";
 
 export async function handleInterviewController(req, res) {
   try {
@@ -30,6 +32,13 @@ export async function handleInterviewController(req, res) {
     let code = null;
     // end interview
     if (END_INTERVIEW_RESPONSES.some((item) => replyText.includes(item))) {
+      await createAuditRecord({
+        action: "end",
+        reason: AUDIT_REASONS.ai,
+        collection: COLLECTIONS.interviews,
+        user: { email: req.session.email, role: req.session.role },
+      });
+
       req.session.interviewHistory = [];
       req.session.role = null;
       req.session.interviewStatus = INTERVIEW_STATUS.ENDED;
@@ -49,6 +58,13 @@ export async function handleInterviewController(req, res) {
 export const endInterviewController = async (req, res) => {
   // end interview
   try {
+    await createAuditRecord({
+      action: "end",
+      reason: AUDIT_REASONS.userRequest,
+      collection: COLLECTIONS.interviews,
+      user: { email: req.session.email, role: req.session.role },
+    });
+
     req.session.interviewHistory = [];
     req.session.role = null;
     req.session.interviewStatus = INTERVIEW_STATUS.ENDED;
