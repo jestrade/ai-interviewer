@@ -147,7 +147,7 @@ ai-interviewer/
 │   │   ├── assets/         # Images, fonts, etc.
 │   │   ├── components/     # Reusable UI components
 │   │   │   ├── ui/         # Shadcn UI components
-│   │   │   └── ...
+│   │   │   └── auth/       # Authentication components
 │   │   ├── contexts/       # React contexts
 │   │   │   └── auth/       # Authentication context and tests
 │   │   ├── hooks/          # Custom React hooks
@@ -155,7 +155,7 @@ ai-interviewer/
 │   │   ├── pages/          # Page components
 │   │   │   ├── Auth.tsx    # Authentication page
 │   │   │   └── Chat.tsx    # Main interview interface
-│   │   ├── services/       # API services
+│   │   ├── services/       # API services and Firebase integration
 │   │   ├── tests/          # Test utilities and mocks
 │   │   ├── App.tsx         # Main app component
 │   │   └── main.tsx        # Entry point
@@ -166,23 +166,40 @@ ai-interviewer/
 │   └── tsconfig.json       # TypeScript config
 │
 ├── server/                 # Backend server
-│   ├── api/                # API routes
-│   │   ├── interview/      # Interview endpoints
-│   │   │   ├── controllers.js  # Business logic
-│   │   │   └── routes.js   # Route definitions
-│   │   ├── authenticate/   # Auth endpoints
-│   │   └── index.js        # API router
 │   ├── config/             # Configuration
 │   │   └── index.js        # App configuration
-│   ├── lib/                # Shared utilities
+│   ├── constants.js        # Application constants
+│   ├── data_models/        # Data models and prompts
 │   │   └── prompts.js      # AI prompt templates
+│   ├── firebase-service-account-key.json  # Firebase service account
+│   ├── http/               # HTTP server setup
+│   │   ├── api/            # API routes and controllers
+│   │   │   ├── controllers/    # Request handlers
+│   │   │   │   ├── authentication-controllers.js
+│   │   │   │   ├── interview-controllers.js
+│   │   │   │   └── user-controllers.js
+│   │   │   ├── middlewares/    # Express middleware
+│   │   │   │   ├── cors/
+│   │   │   │   └── session/
+│   │   │   ├── routes/        # Route definitions
+│   │   │   │   ├── authentication-routes.js
+│   │   │   │   ├── interview-routes.js
+│   │   │   │   └── user-routes.js
+│   │   │   └── index.js        # API router
+│   │   └── index.js        # HTTP server entry point
+│   ├── services/          # Business logic services
+│   │   ├── audit-service.js
+│   │   ├── firebase/      # Firebase integration
+│   │   │   └── index.js
+│   │   ├── interview-service.js
+│   │   └── userService.js
 │   ├── .env.example        # Environment example
 │   ├── package.json        # Dependencies
 │   └── server.js           # Express setup
 │
 ├── .gitignore             # Git ignore file
 ├── README.md              # This file
-└── pnpm-workspace.yaml    # Monorepo config
+└── firebase-service-account-key.json  # Firebase service account (gitignored)
 ```
 
 ## Environment Variables
