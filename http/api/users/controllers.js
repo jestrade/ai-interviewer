@@ -1,32 +1,30 @@
 import { createUser, getUser } from "../../../services/userService.js";
-import { CODES } from "../../../constants.js";
 
 export const createUserController = async (req, res) => {
   try {
-    const { id, role } = req.body;
-    const user = await createUser(id, { role, name: "User", avatar: null });
+    const { name, email } = req.body;
+    const user = await createUser({ name, email });
     res.json({
-      text: "User created.",
-      code: CODES.CREATE_USER,
+      success: true,
       user,
     });
   } catch (error) {
     console.error("Error creating user:", error);
-    res.status(500).json({ error: "Failed to create user", code: CODES.ERROR });
+    res.status(500).json({ error: "Failed to create user", success: false });
   }
 };
 
 export const getUserController = async (req, res) => {
   try {
-    const { id } = req.params;
-    const user = await getUser(id);
+    const { field, value } = req.params;
+    const user = await getUser({ field, value });
+
     res.json({
-      text: "User found.",
-      code: CODES.CREATE_USER,
       user,
+      success: true,
     });
   } catch (error) {
-    console.error("Error creating user:", error);
-    res.status(500).json({ error: "Failed to create user", code: CODES.ERROR });
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Failed to fetch user", success: false });
   }
 };
