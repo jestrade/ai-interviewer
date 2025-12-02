@@ -1,7 +1,7 @@
 import { Router } from "express";
-import interviewRouter from "./routes/interviews-routes.js";
-import authenticateRouter from "./routes/authentications-routes.js";
-import userRouter from "./routes/users-routes.js";
+import interviewRouter from "./routes/interview-routes.js";
+import authenticateRouter from "./routes/authentication-routes.js";
+import userRouter from "./routes/user-routes.js";
 
 const api = Router();
 

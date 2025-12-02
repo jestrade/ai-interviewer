@@ -1,7 +1,7 @@
-import { processInterviewMessage } from "../../../services/interviews-service.js";
+import { processInterviewMessage } from "../../../services/interview-service.js";
 import { END_INTERVIEW_RESPONSES } from "../../../constants.js";
 import { INTERVIEW_STATUS, CODES } from "../../../constants.js";
-import { createAuditRecord } from "../../../services/audits-service.js";
+import { createAuditRecord } from "../../../services/audit-service.js";
 import { COLLECTIONS, AUDIT_REASONS } from "../../../constants.js";
 
 export async function handleInterviewController(req, res) {
@@ -19,8 +19,8 @@ export async function handleInterviewController(req, res) {
       userText,
       req.session.interviewHistory,
       req.session.interviewStatus,
-      req.session.role,
-      req.session
+      req.session.name,
+      req.session.role
     );
 
     // update context
@@ -31,11 +31,8 @@ export async function handleInterviewController(req, res) {
 
     let code = null;
 
-    console.log("replyText", replyText);
-
     // end interview
     if (END_INTERVIEW_RESPONSES.some((item) => replyText.includes(item))) {
-      console.log("END_INTERVIEW_RESPONSES", END_INTERVIEW_RESPONSES);
       await createAuditRecord({
         action: "end",
         reason: AUDIT_REASONS.ai,

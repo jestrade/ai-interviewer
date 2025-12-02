@@ -1,5 +1,5 @@
 import { INTERVIEW_STATUS } from "../../../constants.js";
-import { createAuditRecord } from "../../../services/audits-service.js";
+import { createAuditRecord } from "../../../services/audit-service.js";
 import { COLLECTIONS } from "../../../constants.js";
 
 export const init = async (req, res) => {
@@ -13,14 +13,15 @@ export const init = async (req, res) => {
     req.session.interviewStatus = INTERVIEW_STATUS.IN_PROGRESS;
     req.session.numberOfQuestions = 0;
 
-    await createAuditRecord({
-      action: "init",
-      collection: COLLECTIONS.interviews,
-      user: { email, role },
-    });
+    // await createAuditRecord({
+    //   action: "init",
+    //   collection: COLLECTIONS.interviews,
+    //   user: { email, role },
+    // });
 
     res.json({
       message: "Session started",
+      success: true,
     });
   } catch (error) {
     console.error("Error initializing interview session:", error);
