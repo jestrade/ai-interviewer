@@ -3,9 +3,9 @@ import { Router } from "express";
 import {
   handleInterviewController,
   endInterviewController,
-} from "../controllers/interviews-controllers.js";
-import { checkOffensiveLanguage } from "../_middlewares/checks/check-offensive-language.js";
-import { checkSession } from "../_middlewares/checks/check-session.js";
+} from "../controllers/interview-controllers.js";
+import { checkOffensiveLanguage } from "../middlewares/checks/check-offensive-language.js";
+import { checkSession } from "../middlewares/checks/check-session.js";
 
 const app = Router();
 

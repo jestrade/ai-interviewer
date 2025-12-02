@@ -1,8 +1,8 @@
 import express from "express";
 import config from "../config/index.js";
 import api from "./api/index.js";
-import sessionMiddleware from "./api/_middlewares/session/index.js";
-import corsMiddleware from "./api/_middlewares/cors/index.js";
+import sessionMiddleware from "./api/middlewares/session/index.js";
+import corsMiddleware from "./api/middlewares/cors/index.js";
 
 const app = express();
 

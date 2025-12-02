@@ -16,6 +16,7 @@ export async function processInterviewMessage(
   userText,
   interviewHistory,
   interviewStatus,
+  name,
   role
 ) {
   if (interviewStatus === INTERVIEW_STATUS.ENDED) {
@@ -49,7 +50,7 @@ export async function processInterviewMessage(
     model: config.llm.gemini.model,
     contents: userPrompt,
     config: {
-      systemInstruction: getSystemPrompt(role),
+      systemInstruction: getSystemPrompt(name, role),
     },
   });
   const replyText = result.text;

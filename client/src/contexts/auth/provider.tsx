@@ -42,6 +42,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signInWithDevMode = async (role: string) => {
+    debugger;
     setIsLoading(true);
 
     // bypass if dev mode
@@ -75,24 +76,36 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     signInWithPopup(auth, provider)
       .then(async (result) => {
-        const user = result.user;
+        const {
+          user: { uid, email, displayName, photoURL },
+        } = result;
         const userData = {
-          id: user.uid,
-          email: user.email,
-          name: user.displayName,
-          avatar: user.photoURL,
+          id: uid,
+          email,
+          name: displayName,
+          avatar: photoURL,
           role,
         };
 
-        setUser(userData);
-        localStorage.setItem("role", role);
-
         try {
-          await authenticate.mutateAsync({ email: user.email, role });
-          await createUser.mutateAsync({
-            email: user.email,
-            name: user.displayName,
+          const authResponse = await authenticate.mutateAsync({
+            email,
+            role,
           });
+          if (!authResponse.success) {
+            throw new Error(authResponse.message);
+          }
+
+          const userResponse = await createUser.mutateAsync({
+            email,
+            name: displayName,
+          });
+          if (!userResponse.success) {
+            throw new Error(userResponse.message);
+          }
+
+          setUser(userData);
+          localStorage.setItem("role", role);
         } catch (error) {
           notifyError("Error initializing interview:", error);
         }

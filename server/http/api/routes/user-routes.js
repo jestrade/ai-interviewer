@@ -3,7 +3,7 @@ import { Router } from "express";
 import {
   createUserController,
   getUserController,
-} from "../controllers/users-controllers.js";
+} from "../controllers/user-controllers.js";
 
 const app = Router();
 
