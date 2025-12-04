@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 const config = {
   httpServer: {
-    port: Number(process.env.HTTP_PORT),
+    port: Number(process.env.HTTP_PORT) || process.env.PORT,
     baseUrl: `${process.env.HTTP_BASE_URL}:${process.env.HTTP_PORT}`,
     sessionKey: process.env.HTTP_SESSION_KEY,
     frontendOrigin: process.env.HTTP_FRONTEND_ORIGIN,
