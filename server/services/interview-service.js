@@ -2,11 +2,15 @@ import config from "../config/index.js";
 import { GoogleGenAI } from "@google/genai";
 import { getSystemPrompt } from "../data_models/prompts.js";
 import { INTERVIEW_STATUS } from "../constants.js";
+import * as Sentry from "@sentry/node";
 
 const apiKey = config.llm.gemini.apiKey;
 
 if (!apiKey) {
   console.error("GEMINI_API_KEY is not set in environment variables.");
+  Sentry.captureException(
+    new Error("GEMINI_API_KEY is not set in environment variables.")
+  );
 }
 
 const genAI = new GoogleGenAI({ apiKey });

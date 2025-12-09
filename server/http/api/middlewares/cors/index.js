@@ -5,6 +5,7 @@ const corsMiddleware = () =>
   cors({
     origin: config.httpServer.frontendOrigin,
     credentials: true,
+    secure: true,
   });
 
 export default corsMiddleware;

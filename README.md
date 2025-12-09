@@ -74,6 +74,8 @@ HTTP_SESSION_KEY=your_session_secret
 # Gemini AI Configuration
 GEMINI_API_KEY=your_gemini_api_key_here
 GEMINI_MODEL=gemini-pro
+
+SENTRY_DSN=your_sentry_dsn_here
 ```
 
 Install dependencies and start the server:

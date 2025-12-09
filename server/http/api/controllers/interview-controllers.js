@@ -3,6 +3,7 @@ import { END_INTERVIEW_RESPONSES } from "../../../constants.js";
 import { INTERVIEW_STATUS, CODES } from "../../../constants.js";
 import { createAuditRecord } from "../../../services/audit-service.js";
 import { COLLECTIONS, AUDIT_REASONS } from "../../../constants.js";
+import * as Sentry from "@sentry/node";
 
 export async function handleInterviewController(req, res) {
   try {
@@ -52,6 +53,7 @@ export async function handleInterviewController(req, res) {
     });
   } catch (err) {
     console.error("AI interview error:", err);
+    Sentry.captureException(err);
     res.status(500).json({ error: "AI interview error", details: err.message });
   }
 }
@@ -77,6 +79,7 @@ export const endInterviewController = async (req, res) => {
     });
   } catch (error) {
     console.error("Error ending interview:", error);
+    Sentry.captureException(error);
     res.status(500).json({ error: "Failed to end interview" });
   }
 };

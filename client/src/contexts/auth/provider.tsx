@@ -42,7 +42,6 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signInWithDevMode = async (role: string) => {
-    debugger;
     setIsLoading(true);
 
     // bypass if dev mode

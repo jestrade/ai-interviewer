@@ -1,4 +1,5 @@
 import { createUser, getUser } from "../../../services/user-service.js";
+import * as Sentry from "@sentry/node";
 
 export const createUserController = async (req, res) => {
   try {
@@ -10,6 +11,7 @@ export const createUserController = async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating user:", error);
+    Sentry.captureException(error);
     res.status(500).json({ error: "Failed to create user", success: false });
   }
 };
@@ -25,6 +27,7 @@ export const getUserController = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching user:", error);
+    Sentry.captureException(error);
     res.status(500).json({ error: "Failed to fetch user", success: false });
   }
 };
