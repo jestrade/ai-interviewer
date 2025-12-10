@@ -59,7 +59,7 @@ cd ai-interviewer
 ### 2. Set up the backend
 
 ```bash
-cd server
+cd node-server
 cp .env.example .env
 ```
 
@@ -167,7 +167,7 @@ ai-interviewer/
 │   ├── package.json        # Dependencies and scripts
 │   └── tsconfig.json       # TypeScript config
 │
-├── server/                 # Backend server
+├── node-server/                 # Backend server
 │   ├── config/             # Configuration
 │   │   └── index.js        # App configuration
 │   ├── constants.js        # Application constants
@@ -229,7 +229,7 @@ Both the client and server include `.env.example` files that can be used as temp
 1. Start the backend server:
 
    ```bash
-   cd server
+   cd node-server
    pnpm dev
    ```
 
@@ -250,7 +250,7 @@ Both the client and server include `.env.example` files that can be used as temp
 
 2. Start the production server:
    ```bash
-   cd ../server
+   cd ../node-server
    pnpm start
    ```
 
