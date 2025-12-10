@@ -28,3 +28,20 @@ dist-ssr
 coverage/
 firebaseServiceAccountKey.json
 firebase-service-account-key.json
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.env
+.venv
+venv/
+ENV/
+env/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
