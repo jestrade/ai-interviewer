@@ -14,6 +14,9 @@ export const init = async (req, res) => {
     req.session.interviewStatus = INTERVIEW_STATUS.IN_PROGRESS;
     req.session.numberOfQuestions = 0;
 
+    console.log("Session started");
+    console.log("req.session.interviewHistory", req.session.interviewHistory);
+
     // await createAuditRecord({
     //   action: "init",
     //   collection: COLLECTIONS.interviews,

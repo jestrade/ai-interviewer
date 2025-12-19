@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "deploy": "yarn run build && firebase deploy"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
