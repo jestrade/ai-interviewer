@@ -2,6 +2,19 @@
 
 A professional interview simulation platform that uses AI to conduct interactive technical interviews. The application features a modern React/TypeScript frontend and a Node.js/Express backend that integrates with Google's Gemini AI for generating role-specific interview questions and evaluating responses in real-time.
 
+## Why AI Interviewer is an AI Agent
+
+AI Interviewer embodies the characteristics of an intelligent agent through its ability to:
+
+- **Perceive Environment**: Continuously monitors the interview context, including user responses, conversation history, and session state
+- **Reason and Plan**: Analyzes candidate responses in real-time, determines appropriate follow-up questions, and adapts the interview difficulty based on performance
+- **Act Autonomously**: Makes independent decisions about question selection, conversation flow, and interview pacing without human intervention
+- **Learn from Context**: Maintains conversation history and uses it to inform subsequent questions, creating a coherent and adaptive interview experience
+- **Communicate Naturally**: Engages in human-like dialogue, understanding both voice and text inputs while generating contextually relevant responses
+- **Achieve Goals**: Works toward the objective of conducting comprehensive technical interviews that accurately assess candidate capabilities
+
+The AI agent operates as a sophisticated conversational partner that can evaluate technical knowledge, problem-solving approaches, and communication skills while maintaining the professional standards of a real interviewer.
+
 ## Features
 
 - 🎤 Voice and text-based interview simulation

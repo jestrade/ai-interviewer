@@ -17,7 +17,7 @@ def agent_api_view(request):
             # Call your Gemini service
             ai_response = generate_ai_response(user_message)
 
-            return JsonResponse({'user_message': user_message, 'ai_response': ai_response})
+            return JsonResponse({'message': ai_response})
 
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
