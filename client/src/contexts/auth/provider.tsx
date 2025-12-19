@@ -99,8 +99,10 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
             throw new Error(userResponse.message);
           }
 
-          setUser(userData);
-          localStorage.setItem("role", role);
+          setTimeout(() => {
+            setUser(userData);
+            localStorage.setItem("role", role);
+          }, 3000);
         } catch (error) {
           notifyError("Error initializing interview:", error);
         }
