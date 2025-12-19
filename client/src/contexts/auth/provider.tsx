@@ -42,32 +42,28 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signInWithDevMode = async (role: string) => {
-    setIsLoading(true);
-
-    // bypass if dev mode
-    if (config.mode.isDevelopment) {
-      try {
-        const email = "dev-mode-user@email.com";
-        await authenticate.mutateAsync({ email, role });
-        await createUser.mutateAsync({ email, name: "dev-mode-user-name" });
-        const userData = {
-          id: "dev-mode-user-id",
-          email,
-          name: "dev-mode-user-name",
-          avatar: null,
-          role,
-        };
-
-        setUser(userData);
-        localStorage.setItem("role", role);
-      } catch (error) {
-        notifyError("Error initializing interview:", error);
-      }
-    }
-
-    setIsLoading(false);
-
-    return;
+    // setIsLoading(true);
+    // // bypass if dev mode
+    // if (config.mode.isDevelopment) {
+    //   try {
+    //     const email = "dev-mode-user@email.com";
+    //     await authenticate.mutateAsync({ email, role });
+    //     await createUser.mutateAsync({ email, name: "dev-mode-user-name" });
+    //     const userData = {
+    //       id: "dev-mode-user-id",
+    //       email,
+    //       name: "dev-mode-user-name",
+    //       avatar: null,
+    //       role,
+    //     };
+    //     setUser(userData);
+    //     localStorage.setItem("role", role);
+    //   } catch (error) {
+    //     notifyError("Error initializing interview:", error);
+    //   }
+    // }
+    // setIsLoading(false);
+    // return;
   };
 
   const signInWithGoogle = async (role: string) => {
