@@ -5,7 +5,7 @@ const sessionMiddleware = () =>
   session({
     secret: config.httpServer.sessionKey,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
       httpOnly: true,
       maxAge: 1000 * 60 * 60,
