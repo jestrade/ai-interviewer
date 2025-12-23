@@ -9,8 +9,7 @@ const sessionMiddleware = () =>
     cookie: {
       httpOnly: true,
       maxAge: 1000 * 60 * 60,
-      secure: true,
-      sameSite: "none",
+      secure: false,
     },
   });
 

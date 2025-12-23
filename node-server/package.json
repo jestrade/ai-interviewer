@@ -14,6 +14,7 @@
     "express": "^4.18.2",
     "express-session": "^1.18.2",
     "firebase-admin": "^13.6.0",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "redis": "^5.10.0"
   }
 }
