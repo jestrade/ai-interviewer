@@ -44,6 +44,11 @@ const config = {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,
   },
+  mode: {
+    isProduction: import.meta.env.MODE === "production",
+    isDevelopment: import.meta.env.MODE === "development",
+    isStaging: import.meta.env.MODE === "staging",
+  },
 };
 
 export default config;
