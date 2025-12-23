@@ -9,6 +9,8 @@ const startServer = async () => {
     initSentry();
     initializeFirebase();
     await initializeHTTPServer();
+
+    console.log("Server started in " + process.env.NODE_ENV + " mode");
   } catch (error) {
     console.error("Failed to start server:" + error);
     process.exit(1);

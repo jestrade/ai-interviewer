@@ -9,9 +9,9 @@ const app = express();
 export const initializeHTTPServer = async () => {
   try {
     app.set("trust proxy", 1);
+    app.use(sessionMiddleware());
     app.use(corsMiddleware());
     app.use(express.json());
-    app.use(sessionMiddleware());
 
     app.use("/api", api);
 

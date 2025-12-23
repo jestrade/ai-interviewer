@@ -45,9 +45,9 @@ const config = {
     port: process.env.REDIS_PORT,
   },
   mode: {
-    isProduction: import.meta.env.MODE === "production",
-    isDevelopment: import.meta.env.MODE === "development",
-    isStaging: import.meta.env.MODE === "staging",
+    isProduction: process.env.NODE_ENV === "production",
+    isDevelopment: process.env.NODE_ENV === "development",
+    isStaging: process.env.NODE_ENV === "staging",
   },
 };
 

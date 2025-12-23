@@ -5,7 +5,7 @@ import {
   endInterviewController,
 } from "../controllers/interview-controllers.js";
 import { checkOffensiveLanguage } from "../middlewares/checks/check-offensive-language.js";
-import { checkSession } from "../middlewares/checks/check-session.js";
+import { checkSession } from "../middlewares/session/check-session.js";
 
 const app = Router();
 

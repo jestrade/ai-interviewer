@@ -5,10 +5,11 @@ import config from "../../../../config/index.js";
 
 const sessionMiddleware = () =>
   session({
+    name: "sid",
     store: new RedisStore({
       client: getRedisClient({
         client: getRedisClient(),
-        prefix: config.mode.isProduction ? "sess:" : "sess-dev:",
+        prefix: config.mode.isProduction ? "session:" : "session-dev:",
       }),
     }),
     secret: config.httpServer.sessionKey,
@@ -17,8 +18,9 @@ const sessionMiddleware = () =>
     proxy: true,
     cookie: {
       httpOnly: true,
-      maxAge: 1000 * 60 * 60,
-      secure: true,
+      maxAge: 1000 * 60 * 60, // 1 hour
+      secure: config.mode.isProduction,
+      sameSite: "lax",
     },
   });
 
