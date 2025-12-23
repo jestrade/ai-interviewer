@@ -2,13 +2,22 @@ import axios from "axios";
 import config from "@/config";
 import { notifyError } from "@/services/sentry";
 import { useMutation } from "@tanstack/react-query";
+import sessionStorage from "./session-storage";
 
 const api = axios.create({
   baseURL: config.api.url,
-  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
+});
+
+// Add session ID to requests
+api.interceptors.request.use((config) => {
+  const sessionId = sessionStorage.getSessionId();
+  if (sessionId) {
+    config.headers["X-Session-ID"] = sessionId;
+  }
+  return config;
 });
 
 api.interceptors.request.use(
@@ -51,11 +60,18 @@ export const apiFunctions = {
 
   endInterview: async () => {
     const response = await api.post("/interviews/end");
+    sessionStorage.clearSessionId();
     return response.data;
   },
 
   authenticate: async ({ email, role }: { email: string; role: string }) => {
     const response = await api.post("/init", { email, role });
+    const { sessionId } = response.data;
+
+    if (sessionId) {
+      sessionStorage.setSessionId(sessionId);
+    }
+
     return response.data;
   },
 

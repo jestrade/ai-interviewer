@@ -1,7 +1,6 @@
 import express from "express";
 import config from "../config/index.js";
 import api from "./api/index.js";
-import sessionMiddleware from "./api/middlewares/session/index.js";
 import corsMiddleware from "./api/middlewares/cors/index.js";
 
 const app = express();
@@ -9,7 +8,6 @@ const app = express();
 export const initializeHTTPServer = async () => {
   try {
     app.set("trust proxy", 1);
-    app.use(sessionMiddleware());
     app.use(corsMiddleware());
     app.use(express.json());
 

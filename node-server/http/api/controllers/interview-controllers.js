@@ -4,28 +4,33 @@ import { INTERVIEW_STATUS, CODES } from "../../../constants.js";
 import { createAuditRecord } from "../../../services/audit-service.js";
 import { COLLECTIONS, AUDIT_REASONS } from "../../../constants.js";
 import * as Sentry from "@sentry/node";
+import InterviewSessionService from "../../../services/interview-session/index.js";
 
 export async function handleInterviewController(req, res) {
   try {
     const audioBuffer = req.file?.buffer;
     const userText = req.body?.message || "";
-    // update context
-    req.session.interviewHistory.push({
+
+    // Add user message to history
+    await InterviewSessionService.addToHistory(req.sessionId, {
       role: "user",
       parts: [{ text: userText }],
     });
 
+    // Get updated session data
+    const sessionData = await InterviewSessionService.getSession(req.sessionId);
+
     const replyText = await processInterviewMessage(
       audioBuffer,
       userText,
-      req.session.interviewHistory,
-      req.session.interviewStatus,
-      req.session.name,
-      req.session.role
+      sessionData.interviewHistory,
+      sessionData.interviewStatus,
+      sessionData.name,
+      sessionData.role
     );
 
-    // update context
-    req.session.interviewHistory.push({
+    // Add AI response to history
+    await InterviewSessionService.addToHistory(req.sessionId, {
       role: "model",
       parts: [{ text: replyText }],
     });
@@ -38,12 +43,10 @@ export async function handleInterviewController(req, res) {
         action: "end",
         reason: AUDIT_REASONS.ai,
         collection: COLLECTIONS.interviews,
-        user: { email: req.session.email, role: req.session.role },
+        user: { email: sessionData.email, role: sessionData.role },
       });
 
-      req.session.interviewHistory = [];
-      req.session.role = null;
-      req.session.interviewStatus = INTERVIEW_STATUS.ENDED;
+      await InterviewSessionService.endSession(req.sessionId);
       code = CODES.END_INTERVIEW;
     }
 
@@ -65,12 +68,10 @@ export const endInterviewController = async (req, res) => {
       action: "end",
       reason: AUDIT_REASONS.userRequest,
       collection: COLLECTIONS.interviews,
-      user: { email: req.session.email, role: req.session.role },
+      user: { email: req.sessionData.email, role: req.sessionData.role },
     });
 
-    req.session.interviewHistory = [];
-    req.session.role = null;
-    req.session.interviewStatus = INTERVIEW_STATUS.ENDED;
+    await InterviewSessionService.endSession(req.sessionId);
 
     const message = "Interview ended.";
     res.json({
