@@ -45,4 +45,5 @@ export const initializeFirebase = () => {
     credential: cert(serviceAccount),
     projectId: config.firebase.projectId,
   });
+  console.log("Firebase initialized successfully");
 };

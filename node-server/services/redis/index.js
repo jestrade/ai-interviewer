@@ -1,6 +1,6 @@
 import config from "../../config/index.js";
 import { createClient } from "redis";
-import { notifyError } from "../sentry/index.js";
+import * as Sentry from "@sentry/node";
 
 let client = null;
 
@@ -17,7 +17,7 @@ export const initializeRedis = async () => {
 
     client.on("error", (err) => {
       console.error("Redis Client Error:", err);
-      notifyError("Redis Client Error:" + err);
+      Sentry.captureException(err);
     });
 
     client.on("connect", () => {
@@ -33,7 +33,7 @@ export const initializeRedis = async () => {
     return client;
   } catch (error) {
     console.error("Failed to connect to Redis:" + error);
-    notifyError("Failed to connect to Redis:" + error);
+    Sentry.captureException(error);
     throw error;
   }
 };
