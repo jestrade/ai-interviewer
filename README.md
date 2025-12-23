@@ -22,7 +22,7 @@ The AI agent operates as a sophisticated conversational partner that can evaluat
 - 🔄 Real-time AI-powered conversation
 - 🎨 Modern, responsive UI with dark/light mode
 - 🔒 Secure authentication with Firebase (includes development mode)
-- 📊 Session persistence and management
+- 📊 Session persistence and management with Redis
 - 🎙️ Voice input with speech-to-text
 - 🎧 Text-to-speech for AI responses
 - 📱 Mobile-friendly interface
@@ -46,11 +46,31 @@ The AI agent operates as a sophisticated conversational partner that can evaluat
 
 - 🛠️ Node.js with Express
 - 🤖 Google Gemini AI for interview logic
-- 🔄 Session-based conversation management
+- 🔴 Redis for session management and data persistence
 - 🔒 CORS and security middleware
 - 📝 Structured logging with Winston
+- 🔥 Firebase Admin SDK for authentication and data storage
 - 📡 RESTful API design
 - 🔄 WebSocket for real-time updates (future)
+
+## Session Management
+
+The application uses **Redis-based session management** instead of traditional express-session:
+
+- **Stateless Architecture**: No server-side session storage dependency
+- **Redis Storage**: Interview data stored in Redis with TTL (1 hour)
+- **Session IDs**: Client-managed unique identifiers passed via headers
+- **Auto-Extension**: Session TTL extended on each request
+- **Scalability**: Redis can be shared across multiple server instances
+- **Performance**: Direct Redis access is faster than session middleware
+
+### Session Flow
+
+1. **Authentication**: Client receives session ID from `/init` endpoint
+2. **Storage**: Session ID stored in localStorage and Redis
+3. **Requests**: Session ID sent in `X-Session-ID` header
+4. **Management**: Interview history, status, and role managed via Redis
+5. **Cleanup**: Sessions automatically expire and can be manually ended
 
 ## Prerequisites
 
@@ -58,6 +78,7 @@ The AI agent operates as a sophisticated conversational partner that can evaluat
 - pnpm (recommended) or npm
 - Google Gemini API key
 - Firebase project with Authentication enabled
+- Redis server (local or cloud)
 - Modern web browser with WebRTC and Web Speech API support
 
 ## Getting Started
@@ -83,11 +104,31 @@ The `.env.example` file contains all the required environment variables. Simply 
 HTTP_PORT=3001
 HTTP_BASE_URL=http://localhost
 HTTP_SESSION_KEY=your_session_secret
+HTTP_FRONTEND_ORIGIN=
 
 # Gemini AI Configuration
 GEMINI_API_KEY=your_gemini_api_key_here
 GEMINI_MODEL=gemini-pro
 
+# Redis Configuration
+REDIS_USERNAME=your_redis_username
+REDIS_PASSWORD=your_redis_password
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Firebase Service Account Configuration
+FIREBASE_PROJECT_ID=
+FIREBASE_PRIVATE_KEY_ID=
+FIREBASE_PRIVATE_KEY=
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_CLIENT_ID=
+FIREBASE_AUTH_URI=
+FIREBASE_TOKEN_URI=
+FIREBASE_AUTH_PROVIDER_X509_CERT_URL=
+FIREFACE_CLIENT_X509_CERT_URL=
+FIREBASE_UNIVERSE_DOMAIN=
+
+# Sentry Configuration
 SENTRY_DSN=your_sentry_dsn_here
 ```
 
@@ -171,6 +212,8 @@ ai-interviewer/
 │   │   │   ├── Auth.tsx    # Authentication page
 │   │   │   └── Chat.tsx    # Main interview interface
 │   │   ├── services/       # API services and Firebase integration
+│   │   │   ├── api.ts        # API client with session management
+│   │   │   └── session-storage.ts  # LocalStorage session wrapper
 │   │   ├── tests/          # Test utilities and mocks
 │   │   ├── App.tsx         # Main app component
 │   │   └── main.tsx        # Entry point
@@ -195,7 +238,9 @@ ai-interviewer/
 │   │   │   │   └── user-controllers.js
 │   │   │   ├── middlewares/    # Express middleware
 │   │   │   │   ├── cors/
-│   │   │   │   └── session/
+│   │   │   │   └── session/      # Session management
+│   │   │   │       ├── extract-session.js
+│   │   │   │       └── check-session.js
 │   │   │   ├── routes/        # Route definitions
 │   │   │   │   ├── authentication-routes.js
 │   │   │   │   ├── interview-routes.js
@@ -207,6 +252,10 @@ ai-interviewer/
 │   │   ├── firebase/      # Firebase integration
 │   │   │   └── index.js
 │   │   ├── interview-service.js
+│   │   ├── interview-session/  # Redis session management
+│   │   │   └── index.js
+│   │   ├── redis/         # Redis client
+│   │   │   └── index.js
 │   │   └── userService.js
 │   ├── .env.example        # Environment example
 │   ├── package.json        # Dependencies
@@ -228,6 +277,12 @@ Both the client and server include `.env.example` files that can be used as temp
 - `HTTP_SESSION_KEY`: Secret key for session encryption (required)
 - `GEMINI_API_KEY`: Your Google Gemini API key (required)
 - `GEMINI_MODEL`: The Gemini model to use (default: gemini-pro)
+- `REDIS_USERNAME`: Redis username (required)
+- `REDIS_PASSWORD`: Redis password (required)
+- `REDIS_HOST`: Redis host (default: localhost)
+- `REDIS_PORT`: Redis port (default: 6379)
+- `FIREBASE_*`: Firebase service account configuration (required)
+- `SENTRY_DSN`: Sentry DSN for error tracking (optional)
 
 ### Frontend (client/.env)
 
@@ -336,66 +391,13 @@ The authentication system includes comprehensive test coverage for:
 - **CORS issues**: Ensure `VITE_API_BASE_URL` matches the backend address and includes the correct protocol
 - **Microphone access**: Check browser permissions and ensure no other app is using the microphone
 - **Firebase errors**: Verify your Firebase configuration and enable required services
-- **Session issues**: Ensure `HTTP_SESSION_KEY` is set and consistent
+- **Redis connection**: Ensure Redis server is running and credentials are correct
+- **Session issues**: Check that session ID is being sent in `X-Session-ID` header
 - **AI responses**: Check Gemini API key and quota
 - **Check logs**:
   - Browser console for client-side errors
   - Server logs for backend issues
   - Network tab for API request/response details
-
-## Contributing
-
-We welcome contributions! Here's how to get started:
-
-1. Fork the repository and create your feature branch
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-2. Install dependencies and set up the project
-   ```bash
-   pnpm install
-   ```
-3. Make your changes and ensure tests pass
-   ```bash
-   npm test
-   ```
-4. Run the linter and formatter
-   ```bash
-   pnpm lint
-   pnpm format
-   ```
-5. Commit your changes with a descriptive message
-   ```bash
-   git commit -m 'feat: add amazing feature'
-   ```
-6. Push to the branch
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-7. Open a Pull Request with a clear description of changes
-
-### Testing Requirements
-
-All contributions must include appropriate tests:
-
-- New features should have unit tests
-- UI components should have accessibility tests
-- Authentication changes should include auth context tests
-- Bug fixes should include regression tests
-
-Ensure test coverage remains high and all tests pass before submitting a PR.
-
-### Commit Message Guidelines
-
-We use [Conventional Commits](https://www.conventionalcommits.org/):
-
-- `feat:` for new features
-- `fix:` for bug fixes
-- `docs:` for documentation changes
-- `style:` for formatting changes
-- `refactor:` for code changes that neither fixes a bug nor adds a feature
-- `test:` for adding tests or fixing test issues
-- `chore:` for changes to the build process or auxiliary tools
 
 ## License
 
