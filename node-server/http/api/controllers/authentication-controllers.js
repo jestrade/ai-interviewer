@@ -14,9 +14,6 @@ export const init = async (req, res) => {
     req.session.interviewStatus = INTERVIEW_STATUS.IN_PROGRESS;
     req.session.numberOfQuestions = 0;
 
-    console.log("Session started");
-    console.log("req.session.interviewHistory", req.session.interviewHistory);
-
     // await createAuditRecord({
     //   action: "init",
     //   collection: COLLECTIONS.interviews,
@@ -28,7 +25,7 @@ export const init = async (req, res) => {
       success: true,
     });
   } catch (error) {
-    console.error("Error initializing interview session:", error);
+    console.error("Error initializing interview session:" + error);
     Sentry.captureException(error);
     res.status(500).json({ error: "Failed to initialize session" });
   }

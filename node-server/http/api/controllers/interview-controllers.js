@@ -78,7 +78,7 @@ export const endInterviewController = async (req, res) => {
       code: CODES.END_INTERVIEW,
     });
   } catch (error) {
-    console.error("Error ending interview:", error);
+    console.error("Error ending interview:" + error);
     Sentry.captureException(error);
     res.status(500).json({ error: "Failed to end interview" });
   }

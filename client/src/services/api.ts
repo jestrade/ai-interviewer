@@ -25,7 +25,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    notifyError("API Error:", error);
+    notifyError("API Error:" + error);
     return Promise.reject(error);
   }
 );

@@ -16,7 +16,7 @@ const Private = () => {
     try {
       await endInterview.mutateAsync();
     } catch (error) {
-      console.error("Error ending interview:", error);
+      console.error("Error ending interview:" + error);
     } finally {
       await logOut();
       navigate("/");

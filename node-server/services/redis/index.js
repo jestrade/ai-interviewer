@@ -1,18 +1,50 @@
 import config from "../../config/index.js";
-
 import { createClient } from "redis";
+import { notifyError } from "../sentry/index.js";
 
-const client = createClient({
-  username: config.redis.username,
-  password: config.redis.password,
-  socket: {
-    host: config.redis.host,
-    port: config.redis.port,
-  },
-});
+let client = null;
 
-client.on("error", (err) => console.log("Redis Client Error", err));
+export const initializeRedis = async () => {
+  try {
+    client = createClient({
+      username: config.redis.username,
+      password: config.redis.password,
+      socket: {
+        host: config.redis.host,
+        port: config.redis.port,
+      },
+    });
 
-await client.connect();
+    client.on("error", (err) => {
+      console.error("Redis Client Error:", err);
+      notifyError("Redis Client Error:" + err);
+    });
+
+    client.on("connect", () => {
+      console.log("Redis Client Connected");
+    });
+
+    client.on("ready", () => {
+      console.log("Redis Client Ready");
+    });
+
+    await client.connect();
+    console.log("Redis connection established successfully");
+    return client;
+  } catch (error) {
+    console.error("Failed to connect to Redis:" + error);
+    notifyError("Failed to connect to Redis:" + error);
+    throw error;
+  }
+};
+
+export const getRedisClient = () => {
+  if (!client) {
+    throw new Error(
+      "Redis client not initialized. Call initializeRedis() first."
+    );
+  }
+  return client;
+};
 
 export default client;

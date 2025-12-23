@@ -8,8 +8,6 @@ export async function checkSession(req, res, next) {
     });
     return;
   }
-  console.log("Check session");
-  console.log("req.session.interviewHistory", req.session.interviewHistory);
   if (!req.session.interviewHistory) {
     res.json({
       text: "History missing",

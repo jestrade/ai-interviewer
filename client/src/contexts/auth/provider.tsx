@@ -62,7 +62,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(userData);
         localStorage.setItem("role", role);
       } catch (error) {
-        notifyError("Error initializing interview:", error);
+        notifyError("Error initializing interview:" + error);
       }
     }
     setIsLoading(false);
@@ -109,7 +109,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
             }, WAIT_TIME);
           }
         } catch (error) {
-          notifyError("Error initializing interview:", error);
+          notifyError("Error initializing interview:" + error);
           setIsLoading(false);
         }
       })
@@ -134,7 +134,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log("User successfully signed out.");
       })
       .catch((error) => {
-        notifyError("Logout error:", error);
+        notifyError("Logout error:" + error);
       })
       .finally(() => {
         setUser(null);

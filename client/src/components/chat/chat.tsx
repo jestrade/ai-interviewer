@@ -64,7 +64,7 @@ const Chat = () => {
         const aiMessage = await processResponse(result?.text);
         setMessages((prev) => [...prev, aiMessage]);
       } catch (error) {
-        notifyError("Error sending message:", error);
+        notifyError("Error sending message:" + error);
       } finally {
         setIsProcessingARequest(false);
         setIsTyping(false);
@@ -85,7 +85,7 @@ const Chat = () => {
       // Stop the stream immediately, and create a new one when recording
       stream.getTracks().forEach((track) => track.stop());
     } catch (error) {
-      notifyError("Microphone access error:", error);
+      notifyError("Microphone access error:" + error);
       toast({
         title: "Microphone access denied",
         description: "Please allow microphone access to use voice features",
@@ -184,7 +184,7 @@ const Chat = () => {
           await processResponse(data.message);
           speakText(data.message);
         } catch (error) {
-          notifyError("Error sending audio or processing response:", error);
+          notifyError("Error sending audio or processing response:"+ error);
         } finally {
           setIsProcessingARequest(false);
         }
@@ -203,7 +203,7 @@ const Chat = () => {
         duration: 1000,
       });
     } catch (error) {
-      notifyError("Recording failed:", error);
+      notifyError("Recording failed:" + error);
       toast({
         title: "Recording failed",
         description: "Could not start recording",

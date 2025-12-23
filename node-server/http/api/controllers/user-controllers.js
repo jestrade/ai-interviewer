@@ -10,7 +10,7 @@ export const createUserController = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error("Error creating user:", error);
+    console.error("Error creating user:" + error);
     Sentry.captureException(error);
     res.status(500).json({ error: "Failed to create user", success: false });
   }
@@ -26,7 +26,7 @@ export const getUserController = async (req, res) => {
       success: true,
     });
   } catch (error) {
-    console.error("Error fetching user:", error);
+    console.error("Error fetching user:" + error);
     Sentry.captureException(error);
     res.status(500).json({ error: "Failed to fetch user", success: false });
   }
