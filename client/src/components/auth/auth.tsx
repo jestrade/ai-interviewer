@@ -21,17 +21,24 @@ import config from "@/config";
 import LoginButton from "./login-button";
 import Logo from "@/assets/img/logo.svg";
 import GoogleLogo from "@/assets/img/google-logo.svg";
+import { useAuthApi } from "@/services/api";
 
 const Auth = () => {
   const { user, isLoading, signInWithGoogle, signInWithDevMode } = useAuth();
   const [role, setRole] = useState<string>("");
   const navigate = useNavigate();
 
+  const { wakeup } = useAuthApi();
+
   useEffect(() => {
     if (user) {
       navigate("/private/chat");
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    wakeup.mutateAsync();
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">

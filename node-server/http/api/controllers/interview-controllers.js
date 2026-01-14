@@ -4,7 +4,7 @@ import { INTERVIEW_STATUS, CODES } from "../../../constants.js";
 import { createAuditRecord } from "../../../services/audit-service.js";
 import { COLLECTIONS, AUDIT_REASONS } from "../../../constants.js";
 import * as Sentry from "@sentry/node";
-import InterviewSessionService from "../../../services/interview-session/index.js";
+import InterviewSessionService from "../../../services/session-service.js";
 
 export async function handleInterviewController(req, res) {
   try {

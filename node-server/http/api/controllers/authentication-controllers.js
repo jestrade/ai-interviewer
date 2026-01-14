@@ -3,7 +3,20 @@ import { createAuditRecord } from "../../../services/audit-service.js";
 import { COLLECTIONS } from "../../../constants.js";
 import * as Sentry from "@sentry/node";
 import config from "../../../config/index.js";
-import InterviewSessionService from "../../../services/interview-session/index.js";
+import InterviewSessionService from "../../../services/session-service.js";
+
+export const wakeup = async (req, res) => {
+  try {
+    res.json({
+      message: "wakeup",
+      success: true,
+    });
+  } catch (error) {
+    console.error("Error in wakeup:" + error);
+    Sentry.captureException(error);
+    res.status(500).json({ error: "Failed to wakeup" });
+  }
+};
 
 export const init = async (req, res) => {
   try {

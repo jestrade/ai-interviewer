@@ -1,4 +1,4 @@
-import { getRedisClient } from "../redis/index.js";
+import { getRedisClient } from "./redis/index.js";
 
 const SESSION_PREFIX = "interview:";
 const SESSION_TTL = 3600; // 1 hour in seconds

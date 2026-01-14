@@ -2,9 +2,14 @@
   "name": "ai-video-interviewer-server",
   "version": "1.0.0",
   "type": "module",
+  "license": "MIT",
   "scripts": {
     "start": "node server.js",
-    "dev": "NODE_ENV=development nodemon server.js"
+    "dev": "NODE_ENV=development nodemon server.js",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' NODE_ENV=test jest",
+    "test:watch": "NODE_OPTIONS='--experimental-vm-modules' NODE_ENV=test jest --watch",
+    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' NODE_ENV=test jest --coverage",
+    "test:ci": "NODE_OPTIONS='--experimental-vm-modules' NODE_ENV=test jest --ci --coverage --watchAll=false"
   },
   "dependencies": {
     "@google/genai": "^1.26.0",
@@ -16,5 +21,11 @@
     "firebase-admin": "^13.6.0",
     "multer": "^2.0.2",
     "redis": "^5.10.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "@jest/globals": "^29.7.0",
+    "supertest": "^6.3.3",
+    "jest-environment-node": "^29.7.0"
   }
 }

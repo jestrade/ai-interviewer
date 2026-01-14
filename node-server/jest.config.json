@@ -1,0 +1,20 @@
+{
+  "testEnvironment": "node",
+  "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+  "collectCoverageFrom": [
+    "**/*.js",
+    "!tests/**",
+    "!node_modules/**",
+    "!server.js",
+    "!config/index.js"
+  ],
+  "coverageDirectory": "coverage",
+  "coverageReporters": ["text", "lcov", "html"],
+  "transform": {},
+  "transformIgnorePatterns": ["node_modules/(?!(.*\\.mjs$)"],
+  "globals": {
+    "ts-jest": {
+      "useESM": true
+    }
+  }
+}

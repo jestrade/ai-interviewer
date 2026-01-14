@@ -1,4 +1,4 @@
-import InterviewSessionService from "../../../../services/interview-session/index.js";
+import InterviewSessionService from "../../../../services/session-service.js";
 
 export async function extractSession(req, res, next) {
   const sessionId = req.headers["x-session-id"] || req.query.sessionId;
