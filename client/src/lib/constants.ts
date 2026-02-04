@@ -18,4 +18,11 @@ export const ROLE_LABELS = {
     "senior-vp": "Senior VP",
     ceo: "CEO",
   },
+  oil: {
+    "quality-assurance-and-quality-control-engineer":
+      "Quality Assurance and Quality Control (QA/QC) Engineer, Oil and Gas",
+    "project-coordinator": "Oil and Gas Project Coordinator",
+    "certified-inspector": "Certified Welding Inspector (CWI)",
+    "protective-coatings-inspector": "Protective Coatings Inspector",
+  },
 };

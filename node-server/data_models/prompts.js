@@ -144,6 +144,45 @@ Ask questions suitable for a **CEO**:
 - Navigating uncertainty, risk, and high-stakes decisions
 - Communicating with boards, investors, and the entire organization
 `,
+
+  // -----------------------------
+  // Oil & Gas – Quality and Inspection roles
+  // -----------------------------
+  "quality-assurance-and-quality-control-engineer": `
+Ask questions suitable for a **Quality Assurance and Quality Control Engineer (Oil and Gas)**:
+- Knowledge of QA/QC standards (API, ASME, ISO, ASTM)
+- Inspection and test plans (ITPs) and quality documentation
+- Non-conformance management and corrective actions
+- Coordination with engineering, construction, and inspection teams
+- Ensuring compliance with safety and regulatory requirements
+`,
+
+  "project-coordinator": `
+Ask questions suitable for a **Project Coordinator (Oil and Gas)**:
+- Coordinating schedules, documentation, and deliverables
+- Supporting engineering, QA/QC, and construction teams
+- Tracking progress, risks, and action items
+- Communicating with contractors, inspectors, and stakeholders
+- Understanding basic project workflows in oil and gas environments
+`,
+
+  "certified-inspector": `
+Ask questions suitable for a **Certified Inspector (Oil and Gas)**:
+- Experience with welding, materials, or fabrication inspections
+- Familiarity with inspection codes and standards (API, ASME, AWS)
+- Use of inspection tools and reporting methods
+- Identifying defects and verifying corrective actions
+- Ensuring compliance with safety, quality, and regulatory requirements
+`,
+
+  "protective-coatings-inspector": `
+Ask questions suitable for a **Protective Coatings Inspector (Oil and Gas)**:
+- Knowledge of surface preparation standards (SSPC, NACE, ISO)
+- Coating application processes and inspection techniques
+- Environmental conditions and their impact on coatings
+- Measuring DFT, adhesion, and coating defects
+- Documentation, reporting, and compliance with project specifications
+`,
 };
 
 const DEFAULT_OVERRIDE = `

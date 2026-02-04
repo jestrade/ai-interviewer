@@ -73,7 +73,7 @@ const Auth = () => {
                     <SelectItem key={value} value={value}>
                       {label}
                     </SelectItem>
-                  )
+                  ),
                 )}
               </SelectGroup>
               <SelectGroup>
@@ -85,7 +85,7 @@ const Auth = () => {
                     <SelectItem key={value} value={value}>
                       {label}
                     </SelectItem>
-                  )
+                  ),
                 )}
               </SelectGroup>
               <SelectGroup>
@@ -97,8 +97,18 @@ const Auth = () => {
                     <SelectItem key={value} value={value}>
                       {label}
                     </SelectItem>
-                  )
+                  ),
                 )}
+              </SelectGroup>
+              <SelectGroup>
+                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                  Oil & Gas Industry
+                </div>
+                {Object.entries(ROLE_LABELS.oil).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
               </SelectGroup>
             </SelectContent>
           </Select>
