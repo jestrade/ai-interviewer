@@ -397,7 +397,26 @@ const Chat = () => {
       </div>
 
       {/* Input */}
-      {isEnded ? null : (
+      {isEnded ? (
+        <div className="border-t border-border/50 bg-card/80 backdrop-blur-sm shadow-soft">
+          <div className="max-w-5xl mx-auto px-4 py-4">
+            <div className="flex flex-col items-center gap-3">
+              <div className="bg-muted/50 border border-border/50 rounded-lg p-4 flex flex-col items-center gap-3 max-w-md">
+                <p className="text-sm text-muted-foreground text-center">
+                  Your interview has ended. View your detailed feedback to see
+                  how you performed.
+                </p>
+                <Button
+                  onClick={() => navigate("/feedback")}
+                  className="bg-gradient-primary hover:opacity-90 shadow-soft transition-all duration-300 hover:shadow-medium"
+                >
+                  Show Feedback
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
         <div className="border-t border-border/50 bg-card/80 backdrop-blur-sm shadow-soft">
           <div className="max-w-5xl mx-auto px-4 py-4">
             <div className="flex flex-col gap-3">

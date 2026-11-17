@@ -1,6 +1,9 @@
 import config from "../config/index.js";
 import { GoogleGenAI } from "@google/genai";
-import { getSystemPrompt } from "../data_models/prompts.js";
+import {
+  getSystemPrompt,
+  feedbackSystemPrompt,
+} from "../data_models/prompts.js";
 import { INTERVIEW_STATUS } from "../constants.js";
 import * as Sentry from "@sentry/node";
 
@@ -14,6 +17,29 @@ if (!apiKey) {
 }
 
 const genAI = new GoogleGenAI({ apiKey });
+
+const feedbackSchema = {
+  type: "ARRAY", // Root type changed to array
+  items: {
+    // Your original object moves here
+    type: "OBJECT",
+    properties: {
+      question: {
+        type: "STRING",
+        description: "The question asked",
+      },
+      answer: {
+        type: "STRING",
+        description: "The answer given by the candidate",
+      },
+      feedback: {
+        type: "STRING",
+        description: "The feedback for the answer",
+      },
+    },
+    required: ["question", "answer", "feedback"],
+  },
+};
 
 export async function processInterviewMessage(
   audioBuffer,
@@ -58,6 +84,26 @@ export async function processInterviewMessage(
     },
   });
   const replyText = result.text;
+
+  return replyText;
+}
+
+export async function getFeedback(interviewHistory) {
+  const userPrompt = JSON.stringify(interviewHistory);
+
+  const result = await genAI.models.generateContent({
+    model: config.llm.gemini.model,
+    contents: userPrompt,
+    config: {
+      systemInstruction: feedbackSystemPrompt,
+      responseMimeType: "application/json",
+      responseSchema: feedbackSchema,
+    },
+  });
+
+  console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+  console.log(result.text);
+  const replyText = JSON.parse(result.text);
 
   return replyText;
 }

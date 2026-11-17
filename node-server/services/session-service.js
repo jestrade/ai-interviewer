@@ -49,8 +49,6 @@ export class InterviewSessionService {
   }
 
   static async addToHistory(sessionId, message) {
-    const client = getRedisClient();
-    const sessionKey = SESSION_PREFIX + sessionId;
     const currentSession = await this.getSession(sessionId);
 
     if (!currentSession) {
@@ -64,8 +62,26 @@ export class InterviewSessionService {
   }
 
   static async endSession(sessionId) {
+    const client = getRedisClient();
+    const sessionKey = SESSION_PREFIX + sessionId;
+    const sessionData = await client.get(sessionKey);
+
+    const interviewHistoryForFeedback = sessionData
+      ? JSON.parse(sessionData)
+      : {};
+
     return await this.updateSession(sessionId, {
       interviewStatus: "ENDED",
+      interviewHistoryForFeedback,
+      interviewHistory: [],
+      role: null,
+    });
+  }
+
+  static async logout(sessionId) {
+    return await this.updateSession(sessionId, {
+      interviewStatus: "ENDED",
+      interviewHistoryForFeedback: [],
       interviewHistory: [],
       role: null,
     });

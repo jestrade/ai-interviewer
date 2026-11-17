@@ -6,11 +6,34 @@ import Chat from "../../components/chat/chat";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useInterviewApi } from "@/services/api";
+import { useState, useEffect } from "react";
 
 const Private = () => {
   const { user, logOut } = useAuth();
   const navigate = useNavigate();
   const { endInterview } = useInterviewApi();
+  const [timer, setTimer] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimer((prevTimer) => {
+        if (prevTimer >= 3599) {
+          return 3599; // Max 59:59
+        }
+        return prevTimer + 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
 
   const handleSignOut = async () => {
     try {
@@ -56,6 +79,11 @@ const Private = () => {
           </div>
 
           <div className="flex items-center justify-end gap-3">
+            {/* Timer display */}
+            <span className="text-sm font-mono text-muted-foreground bg-muted px-2 py-1 rounded">
+              {formatTime(timer)}
+            </span>
+
             {/* Desktop view: "Hello, {name}" on left */}
             <span className="hidden md:inline text-sm text-muted-foreground italic">
               <span className="font-serif">Hello, </span>

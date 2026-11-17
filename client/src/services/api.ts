@@ -84,6 +84,11 @@ export const apiFunctions = {
     const response = await api.post("/users", { email, name });
     return response.data;
   },
+
+  getFeedback: async () => {
+    const response = await api.get("/interviews/feedback");
+    return response.data;
+  },
 };
 
 // React Query hooks for interview operations
@@ -100,6 +105,11 @@ export const useInterviewApi = () => ({
 
   endInterview: useMutation({
     mutationFn: apiFunctions.endInterview,
+    gcTime: 0,
+  }),
+
+  getFeedback: useMutation({
+    mutationFn: apiFunctions.getFeedback,
     gcTime: 0,
   }),
 });

@@ -1,4 +1,7 @@
-import { processInterviewMessage } from "../../../services/interview-service.js";
+import {
+  processInterviewMessage,
+  getFeedback,
+} from "../../../services/interview-service.js";
 import { END_INTERVIEW_RESPONSES } from "../../../constants.js";
 import { INTERVIEW_STATUS, CODES } from "../../../constants.js";
 import { createAuditRecord } from "../../../services/audit-service.js";
@@ -61,6 +64,30 @@ export async function handleInterviewController(req, res) {
   }
 }
 
+export const feedbackController = async (req, res) => {
+  // get feedback
+  try {
+    const sessionData = await InterviewSessionService.getSession(req.sessionId);
+
+    console.log("......................");
+    console.log(sessionData.interviewHistoryForFeedback);
+    const feedback = await getFeedback(sessionData.interviewHistoryForFeedback);
+    await createAuditRecord({
+      action: "feedback",
+      reason: AUDIT_REASONS.userRequest,
+      collection: COLLECTIONS.interviews,
+      user: { email: req.sessionData.email, role: req.sessionData.role },
+    });
+    res.json({
+      feedback,
+    });
+  } catch (error) {
+    console.error("Error getting feedback:" + error);
+    Sentry.captureException(error);
+    res.status(500).json({ error: "Error getting feedback" });
+  }
+};
+
 export const endInterviewController = async (req, res) => {
   // end interview
   try {
@@ -71,7 +98,7 @@ export const endInterviewController = async (req, res) => {
       user: { email: req.sessionData.email, role: req.sessionData.role },
     });
 
-    await InterviewSessionService.endSession(req.sessionId);
+    await InterviewSessionService.logout(req.sessionId);
 
     const message = "Interview ended.";
     res.json({

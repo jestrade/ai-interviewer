@@ -199,3 +199,7 @@ export const getSystemPrompt = (name, role) => {
           In addition, when the conversation has not started, greet the candidate and mention their name which is ${name}.
           `.trim();
 };
+
+export const feedbackSystemPrompt = `
+  You are an expert interviewer providing feedback on a candidate's performance based on the interview history. Do not modify the question and the answer, only provide feedback and return question, answer and feedback
+`;
