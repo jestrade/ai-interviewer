@@ -17,9 +17,9 @@ beforeEach(() => {
 describe("apiFunctions", () => {
   it("stores the session id returned by init", async () => {
     callable.mockResolvedValue({ data: { success: true, sessionId: "abc" } });
-    await apiFunctions.authenticate({ email: "a@b.c", role: "ceo" });
+    await apiFunctions.authenticate({ role: "ceo" });
 
-    expect(callable).toHaveBeenCalledWith("init", { email: "a@b.c", role: "ceo" });
+    expect(callable).toHaveBeenCalledWith("init", { role: "ceo" });
     expect(sessionStorage.getSessionId()).toBe("abc");
   });
 
@@ -42,5 +42,20 @@ describe("apiFunctions", () => {
   it("rethrows callable errors", async () => {
     callable.mockRejectedValue(new Error("nope"));
     await expect(apiFunctions.getFeedback()).rejects.toThrow("nope");
+  });
+});
+
+describe("admin calls", () => {
+  it("lists invitations", async () => {
+    callable.mockResolvedValue({ data: { invitations: [{ email: "x@y.z" }] } });
+    expect(await apiFunctions.listInvitations()).toEqual([{ email: "x@y.z" }]);
+  });
+
+  it("invites and revokes by email", async () => {
+    callable.mockResolvedValue({ data: {} });
+    await apiFunctions.inviteUser("x@y.z");
+    await apiFunctions.revokeInvitation("x@y.z");
+    expect(callable).toHaveBeenCalledWith("inviteUser", { email: "x@y.z" });
+    expect(callable).toHaveBeenCalledWith("revokeInvitation", { email: "x@y.z" });
   });
 });

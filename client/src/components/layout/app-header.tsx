@@ -1,11 +1,19 @@
-import { LogOut } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { User } from "@/contexts/auth/types";
 import { formatClock, useElapsedTimer } from "@/hooks/use-elapsed-timer";
 import { InterviewerIcon } from "@/components/chat/interviewer-icon";
 
-export const AppHeader = ({ user, onSignOut }: { user: User; onSignOut: () => void }) => {
+export const AppHeader = ({
+  user,
+  onSignOut,
+  onAdmin,
+}: {
+  user: User;
+  onSignOut: () => void;
+  onAdmin?: () => void;
+}) => {
   const elapsed = useElapsedTimer();
 
   return (
@@ -37,6 +45,13 @@ export const AppHeader = ({ user, onSignOut }: { user: User; onSignOut: () => vo
               {user.name?.[0]}
             </AvatarFallback>
           </Avatar>
+
+          {onAdmin && (
+            <Button variant="outline" size="sm" onClick={onAdmin}>
+              <ShieldCheck className="w-4 h-4 mr-2" />
+              Admin
+            </Button>
+          )}
 
           <Button
             variant="ghost"

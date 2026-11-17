@@ -14,3 +14,7 @@ export const createUser = onCall(options, handlers.createUserHandler);
 export const sendMessage = onCall(llmOptions, handlers.sendMessage);
 export const endInterview = onCall(options, handlers.endInterview);
 export const getFeedback = onCall(llmOptions, handlers.getFeedback);
+export const whoami = onCall(options, handlers.whoami);
+export const listInvitations = onCall(options, handlers.listInvitations);
+export const inviteUser = onCall(options, handlers.inviteUser);
+export const revokeInvitation = onCall(options, handlers.revokeInvitation);

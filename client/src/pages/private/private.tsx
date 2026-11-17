@@ -25,7 +25,11 @@ const Private = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-subtle">
-      <AppHeader user={user} onSignOut={handleSignOut} />
+      <AppHeader
+        user={user}
+        onSignOut={handleSignOut}
+        onAdmin={user.isAdmin ? () => navigate("/admin") : undefined}
+      />
       <Chat />
     </div>
   );

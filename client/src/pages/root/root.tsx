@@ -3,12 +3,18 @@ import { ReactNode } from "react";
 import Auth from "@/components/auth/auth";
 import Feedback from "@/components/feedback/feedback";
 import { useAuth } from "@/contexts/auth/hooks";
+import Admin from "../admin/admin";
 import NotFound from "../not-found";
 import Private from "../private/private";
 
 const RequireAuth = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   return user ? <>{children}</> : <Navigate to="/" replace />;
+};
+
+const RequireAdmin = ({ children }: { children: ReactNode }) => {
+  const { user } = useAuth();
+  return user?.isAdmin ? <>{children}</> : <Navigate to="/" replace />;
 };
 
 const Root = () => {
@@ -24,6 +30,14 @@ const Root = () => {
             <RequireAuth>
               <Feedback />
             </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <RequireAdmin>
+              <Admin />
+            </RequireAdmin>
           }
         />
         <Route path="*" element={<NotFound />} />

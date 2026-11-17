@@ -14,3 +14,6 @@ export const getOffensiveKeywords = () =>
     .split(",")
     .map((word) => word.trim().toLowerCase())
     .filter(Boolean);
+
+const ADMIN_EMAIL = defineString("ADMIN_EMAIL", { default: "jesuestrada@gmail.com" });
+export const getAdminEmail = () => ADMIN_EMAIL.value().trim().toLowerCase();

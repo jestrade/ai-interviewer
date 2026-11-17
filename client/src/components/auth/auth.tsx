@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth/hooks";
-import config from "@/config";
 import Logo from "@/assets/img/logo.svg";
 import GoogleLogo from "@/assets/img/google-logo.svg";
 import LoginButton from "./login-button";
 import { RoleSelect } from "./role-select";
 
 const Auth = () => {
-  const { isLoading, signInWithGoogle, signInWithDevMode } = useAuth();
+  const { isLoading, signInWithGoogle } = useAuth();
   const [role, setRole] = useState("");
 
   return (
@@ -38,15 +37,6 @@ const Auth = () => {
             text="Continue with Google"
             logo={GoogleLogo}
           />
-          {config.mode.isDevelopment && (
-            <LoginButton
-              isLoading={isLoading}
-              signInFunction={signInWithDevMode}
-              role={role}
-              text="Continue with fake login (only dev mode)"
-              logo={Logo}
-            />
-          )}
         </CardContent>
       </Card>
     </div>

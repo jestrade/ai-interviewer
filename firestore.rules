@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// All data is accessed through Cloud Functions (Admin SDK bypasses these rules).
+// Clients must never read or write Firestore directly: invitations, sessions,
+// users and audits are private.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

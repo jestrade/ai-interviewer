@@ -25,6 +25,7 @@ export const COLLECTIONS = {
   interviews: "interviews",
   sessions: "sessions",
   audits: "audits",
+  invitations: "invitations",
 };
 
 export const AUDIT_REASONS = {

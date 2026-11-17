@@ -14,7 +14,9 @@ import {
   generateInterviewReply,
 } from "./services/interview-service.js";
 import Sessions from "./services/session-service.js";
-import { createUser } from "./services/user-service.js";
+import { requireAccess, requireAdmin, identify, normalizeEmail } from "./access.js";
+import { invite, listInvitees, revoke } from "./services/invitation-service.js";
+import { recordInterviewAttempt, upsertUser } from "./services/user-service.js";
 
 const endResponse = (text) => ({ text, code: CODES.END_INTERVIEW });
 
@@ -26,10 +28,12 @@ const requireString = (value, field) => {
 };
 
 /** Loads the session or fails; also slides its expiry (was `extractSession`). */
-const loadSession = async (sessionId) => {
+const loadSession = async (sessionId, email) => {
   requireString(sessionId, "sessionId");
   const session = await Sessions.getSession(sessionId);
-  if (!session) throw new HttpsError("not-found", "Session not found or expired");
+  if (!session || session.email !== email) {
+    throw new HttpsError("not-found", "Session not found or expired");
+  }
   await Sessions.extendSession(sessionId);
   return session;
 };
@@ -44,7 +48,7 @@ const sessionBlocker = (session) => {
 
 const wrap = (name, fn) => async (request) => {
   try {
-    return await fn(request.data ?? {});
+    return await fn(request.data ?? {}, request);
   } catch (error) {
     if (error instanceof HttpsError) throw error;
     logger.error(`${name} failed`, error);
@@ -54,26 +58,34 @@ const wrap = (name, fn) => async (request) => {
 
 export const wakeup = wrap("wakeup", async () => ({ message: "wakeup", success: true }));
 
-export const init = wrap("init", async ({ email, role }) => {
-  requireString(email, "email");
+/** Who am I and may I use the app? Never throws for uninvited users. */
+export const whoami = wrap("whoami", async (_data, request) => {
+  const { email, isAdmin, allowed } = await identify(request);
+  return { email, isAdmin, allowed };
+});
+
+export const init = wrap("init", async ({ role }, request) => {
+  const { email, name, isAdmin } = await requireAccess(request);
   requireString(role, "role");
   const sessionId = await Sessions.createSession(email, role);
+  await recordInterviewAttempt({ email, name, role });
   await createAuditRecord({
     action: "init",
     collection: COLLECTIONS.interviews,
     user: { email, role },
   });
-  return { message: "Session started", success: true, sessionId };
+  return { message: "Session started", success: true, sessionId, isAdmin };
 });
 
-export const createUserHandler = wrap("createUser", async ({ name, email }) => {
-  requireString(email, "email");
-  const user = await createUser({ name, email });
+export const createUserHandler = wrap("createUser", async ({ name }, request) => {
+  const caller = await requireAccess(request);
+  const user = await upsertUser({ email: caller.email, name: name || caller.name });
   return { success: true, user };
 });
 
-export const sendMessage = wrap("sendMessage", async ({ sessionId, message, audio }) => {
-  const session = await loadSession(sessionId);
+export const sendMessage = wrap("sendMessage", async ({ sessionId, message, audio }, request) => {
+  const { email } = await requireAccess(request);
+  const session = await loadSession(sessionId, email);
 
   const blocked = sessionBlocker(session);
   if (blocked) return endResponse(blocked);
@@ -127,8 +139,9 @@ export const sendMessage = wrap("sendMessage", async ({ sessionId, message, audi
   return { text: replyText, code };
 });
 
-export const endInterview = wrap("endInterview", async ({ sessionId }) => {
-  const session = await loadSession(sessionId);
+export const endInterview = wrap("endInterview", async ({ sessionId }, request) => {
+  const { email } = await requireAccess(request);
+  const session = await loadSession(sessionId, email);
   await createAuditRecord({
     action: "end",
     reason: AUDIT_REASONS.userRequest,
@@ -139,8 +152,9 @@ export const endInterview = wrap("endInterview", async ({ sessionId }) => {
   return endResponse("Interview ended.");
 });
 
-export const getFeedback = wrap("getFeedback", async ({ sessionId }) => {
-  const session = await loadSession(sessionId);
+export const getFeedback = wrap("getFeedback", async ({ sessionId }, request) => {
+  const { email } = await requireAccess(request);
+  const session = await loadSession(sessionId, email);
   const feedback = await generateFeedback(session.interviewHistoryForFeedback ?? []);
   await createAuditRecord({
     action: "feedback",
@@ -149,4 +163,27 @@ export const getFeedback = wrap("getFeedback", async ({ sessionId }) => {
     user: { email: session.email, role: session.role },
   });
   return { feedback };
+});
+
+// ---- Admin ----
+
+export const listInvitations = wrap("listInvitations", async (_data, request) => {
+  await requireAdmin(request);
+  return { invitations: await listInvitees() };
+});
+
+export const inviteUser = wrap("inviteUser", async ({ email }, request) => {
+  const admin = await requireAdmin(request);
+  const target = normalizeEmail(email);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(target)) {
+    throw new HttpsError("invalid-argument", "A valid email is required");
+  }
+  const { created } = await invite(target, admin.email);
+  return { email: target, created };
+});
+
+export const revokeInvitation = wrap("revokeInvitation", async ({ email }, request) => {
+  await requireAdmin(request);
+  await revoke(normalizeEmail(email));
+  return { success: true };
 });

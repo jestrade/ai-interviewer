@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, ReactNode } from "react";
 import {
   GoogleAuthProvider,
   getAuth,
@@ -8,9 +8,10 @@ import {
 } from "firebase/auth";
 
 import { app } from "@/services/firebase";
-import { useAuthApi } from "@/services/api";
+import { apiFunctions, useAuthApi } from "@/services/api";
+import sessionStorage from "@/services/session-storage";
 import { notifyError } from "@/services/sentry";
-import config from "@/config";
+import { toast } from "@/hooks/use-toast";
 import { User } from "./types";
 import AuthContext from "./auth-context";
 
@@ -18,86 +19,84 @@ const googleProvider = new GoogleAuthProvider();
 const auth = getAuth(app);
 
 const ROLE_KEY = "role";
-const storedRole = () => localStorage.getItem(ROLE_KEY) ?? "";
 
-const DEV_USER = {
-  id: "dev-mode-user-id",
-  email: "dev-mode-user@email.com",
-  name: "dev-mode-user-name",
-  avatar: null,
+const isPermissionDenied = (error: unknown) =>
+  (error as { code?: string })?.code === "functions/permission-denied";
+
+const rejectUninvited = async () => {
+  await signOut(auth);
+  toast({
+    title: "Access denied",
+    description: "This account has not been invited. Ask the administrator for access.",
+    variant: "destructive",
+  });
 };
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { authenticate, createUser } = useAuthApi();
+  // Firebase fires onAuthStateChanged mid sign-in, before the session exists.
+  const isSigningIn = useRef(false);
 
-  // Restore the Firebase session on reload.
+  // Restore the Firebase session on reload, re-checking the invitation.
   useEffect(() => {
-    return onAuthStateChanged(auth, (firebaseUser) => {
-      if (!firebaseUser) return;
-      setUser({
-        id: firebaseUser.uid,
-        email: firebaseUser.email ?? "",
-        name: firebaseUser.displayName ?? "",
-        avatar: firebaseUser.photoURL,
-        role: storedRole(),
-      });
+    return onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser || isSigningIn.current) return;
+      try {
+        const access = await apiFunctions.whoami();
+        const role = localStorage.getItem(ROLE_KEY) ?? "";
+        if (!access.allowed) return await rejectUninvited();
+        // Without a live session a new interview must be started with a role.
+        if (!sessionStorage.hasSessionId()) {
+          if (!role) return await signOut(auth);
+          await authenticate.mutateAsync({ role });
+        }
+        setUser({
+          id: firebaseUser.uid,
+          email: firebaseUser.email ?? "",
+          name: firebaseUser.displayName ?? "",
+          avatar: firebaseUser.photoURL,
+          role,
+          isAdmin: access.isAdmin,
+        });
+      } catch (error) {
+        notifyError("Error restoring session:" + error);
+      }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** Opens an interview session and registers the user; throws on failure. */
-  const startInterview = useCallback(
-    async (candidate: Omit<User, "role">, role: string) => {
-      const session = await authenticate.mutateAsync({ email: candidate.email, role });
-      if (!session.success) throw new Error(session.message);
-
-      const registration = await createUser.mutateAsync({
-        email: candidate.email,
-        name: candidate.name,
-      });
-      if (!registration.success) throw new Error(registration.message);
-
-      localStorage.setItem(ROLE_KEY, role);
-      setUser({ ...candidate, role });
-    },
-    [authenticate, createUser]
-  );
-
-  const signIn = useCallback(
-    async (role: string, getCandidate: () => Promise<Omit<User, "role">>) => {
+  const signInWithGoogle = useCallback(
+    async (role: string) => {
       setIsLoading(true);
+      isSigningIn.current = true;
       try {
-        await startInterview(await getCandidate(), role);
+        const { user: u } = await signInWithPopup(auth, googleProvider);
+        const name = u.displayName ?? "";
+
+        const session = await authenticate.mutateAsync({ role });
+        if (!session.success) throw new Error(session.message);
+        await createUser.mutateAsync({ name });
+
+        localStorage.setItem(ROLE_KEY, role);
+        setUser({
+          id: u.uid,
+          email: u.email ?? "",
+          name,
+          avatar: u.photoURL,
+          role,
+          isAdmin: session.isAdmin,
+        });
       } catch (error) {
-        notifyError("Error initializing interview:" + error);
+        if (isPermissionDenied(error)) await rejectUninvited();
+        else notifyError("Error initializing interview:" + error);
       } finally {
+        isSigningIn.current = false;
         setIsLoading(false);
       }
     },
-    [startInterview]
-  );
-
-  const signInWithGoogle = useCallback(
-    (role: string) =>
-      signIn(role, async () => {
-        const { user: u } = await signInWithPopup(auth, googleProvider);
-        return {
-          id: u.uid,
-          email: u.email ?? "",
-          name: u.displayName ?? "",
-          avatar: u.photoURL,
-        };
-      }),
-    [signIn]
-  );
-
-  const signInWithDevMode = useCallback(
-    async (role: string) => {
-      if (!config.mode.isDevelopment) return;
-      await signIn(role, async () => DEV_USER);
-    },
-    [signIn]
+    [authenticate, createUser]
   );
 
   const logOut = useCallback(async () => {
@@ -114,8 +113,8 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const value = useMemo(
-    () => ({ user, isLoading, signInWithGoogle, signInWithDevMode, logOut }),
-    [user, isLoading, signInWithGoogle, signInWithDevMode, logOut]
+    () => ({ user, isLoading, signInWithGoogle, logOut }),
+    [user, isLoading, signInWithGoogle, logOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

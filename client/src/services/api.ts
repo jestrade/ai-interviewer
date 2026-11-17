@@ -8,8 +8,22 @@ import sessionStorage from "./session-storage";
  * Thin adapter over Firebase callable functions. It keeps the call surface
  * the UI already uses, so components don't know about the transport.
  */
+export interface Invitee {
+  email: string;
+  name: string;
+  invitedAt: string | null;
+  lastAccessAt: string | null;
+  attempts: number;
+  roles: { role: string; count: number }[];
+}
+
 interface ApiResponse {
   success?: boolean;
+  allowed?: boolean;
+  isAdmin?: boolean;
+  created?: boolean;
+  email?: string;
+  invitations?: Invitee[];
   message?: string;
   sessionId?: string;
   text?: string;
@@ -54,18 +68,25 @@ export const apiFunctions = {
     return data;
   },
 
-  authenticate: async ({ email, role }: { email: string; role: string }) => {
-    const data = await call("init", { email, role });
+  /** Starts an interview session. Identity comes from the Firebase ID token. */
+  authenticate: async ({ role }: { role: string }) => {
+    const data = await call("init", { role });
     if (data.sessionId) {
       sessionStorage.setSessionId(data.sessionId);
     }
     return data;
   },
 
-  createUser: ({ email, name }: { email: string; name: string }) =>
-    call("createUser", { email, name }),
+  createUser: ({ name }: { name: string }) => call("createUser", { name }),
+
+  whoami: () => call("whoami"),
 
   getFeedback: () => call("getFeedback", { sessionId: sessionId() }),
+
+  // Admin
+  listInvitations: async () => (await call("listInvitations")).invitations ?? [],
+  inviteUser: (email: string) => call("inviteUser", { email }),
+  revokeInvitation: (email: string) => call("revokeInvitation", { email }),
 };
 
 // React Query hooks for interview operations
