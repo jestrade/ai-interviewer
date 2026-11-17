@@ -1,4 +1,4 @@
-import { Mail, Trash2 } from "lucide-react";
+import { CircleCheck, Clock, Hourglass, Mail, Repeat, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -66,8 +66,12 @@ export const InviteesTable = ({
         <TableRow>
           <TableHead>User</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Last access</TableHead>
-          <TableHead className="text-right">Attempts</TableHead>
+          <TableHead>
+            <span className="inline-flex items-center gap-1"><Clock className="w-4 h-4" aria-hidden="true" />Last access</span>
+          </TableHead>
+          <TableHead className="text-right">
+            <span className="inline-flex items-center gap-1"><Repeat className="w-4 h-4" aria-hidden="true" />Attempts</span>
+          </TableHead>
           <TableHead>Roles interviewed for</TableHead>
           <TableHead className="w-24" />
         </TableRow>
@@ -80,7 +84,8 @@ export const InviteesTable = ({
               {invitee.name && <div className="text-xs text-muted-foreground">{invitee.name}</div>}
             </TableCell>
             <TableCell>
-              <Badge variant={invitee.lastAccessAt ? "default" : "secondary"}>
+              <Badge variant={invitee.lastAccessAt ? "default" : "secondary"} className="gap-1">
+                {invitee.lastAccessAt ? <CircleCheck className="w-3 h-3" /> : <Hourglass className="w-3 h-3" />}
                 {invitee.lastAccessAt ? "Active" : "Pending"}
               </Badge>
             </TableCell>

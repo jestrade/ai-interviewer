@@ -39,7 +39,7 @@ export const ChatInput = ({
   const blocked = disabled || isWaiting || recognition.isListening;
 
   return (
-    <div className="border-t border-border/50 bg-card/80 backdrop-blur-sm shadow-soft">
+    <div className="border-t border-border/50 bg-card/80 backdrop-blur-sm">
       <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col gap-3">
         {!microphone.isEnabled && (
           <div className="bg-muted/50 border border-border/50 rounded-lg p-3 flex items-center gap-3">
@@ -63,7 +63,7 @@ export const ChatInput = ({
             <Button
               type="button"
               onClick={toggleRecording}
-              className="h-12 px-6 bg-destructive hover:bg-destructive/90 animate-pulse shadow-soft hover:shadow-medium"
+              className="h-12 px-6 bg-destructive hover:bg-destructive/90 animate-pulse"
             >
               <MicOff className="w-5 h-5 mr-2" />
               Stop Recording
@@ -74,7 +74,7 @@ export const ChatInput = ({
               onClick={toggleRecording}
               disabled={isWaiting || disabled}
               aria-label="Record answer"
-              className="h-12 px-4 bg-secondary hover:opacity-90 shadow-soft transition-all duration-300 hover:shadow-medium"
+              className="h-12 px-4 bg-secondary hover:opacity-90"
             >
               <Mic className="w-5 h-5" />
             </Button>
@@ -88,14 +88,14 @@ export const ChatInput = ({
                 ? "Recording... Click 'Stop Recording' when done"
                 : "Type your response or use voice..."
             }
-            className="flex-1 h-12 bg-background border-border/50 focus-visible:ring-primary transition-all duration-300"
+            className="flex-1 h-12 bg-background border-border/50 focus-visible:ring-primary"
             disabled={blocked}
           />
 
           <Button
             type="submit"
             disabled={!input.trim() || blocked}
-            className="h-12 px-6 bg-gradient-primary hover:opacity-90 shadow-soft transition-all duration-300 hover:shadow-medium"
+            className="h-12 px-6 bg-primary hover:opacity-90"
           >
             {isWaiting ? (
               <Loader2 className="w-5 h-5 animate-spin" />

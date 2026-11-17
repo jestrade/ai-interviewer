@@ -18,7 +18,7 @@ export const MessageBubble = ({ message, user }: { message: Message; user: User 
             </AvatarFallback>
           </>
         ) : (
-          <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+          <div className="w-full h-full bg-primary flex items-center justify-center">
             <InterviewerIcon />
           </div>
         )}
@@ -27,9 +27,9 @@ export const MessageBubble = ({ message, user }: { message: Message; user: User 
       <div className={cn("flex flex-col max-w-[80%]", isUser ? "items-end" : "items-start")}>
         <div
           className={cn(
-            "rounded-2xl px-4 py-3 shadow-soft transition-all duration-300 hover:shadow-medium",
+            "rounded-lg px-4 py-3",
             isUser
-              ? "bg-gradient-primary text-white"
+              ? "bg-primary text-primary-foreground"
               : "bg-card text-card-foreground border border-border/50"
           )}
         >
@@ -46,11 +46,11 @@ export const MessageBubble = ({ message, user }: { message: Message; user: User 
 export const TypingIndicator = () => (
   <div className="flex gap-3 animate-fade-in" aria-label="The interviewer is typing">
     <Avatar className="w-8 h-8 mt-1">
-      <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+      <div className="w-full h-full bg-primary flex items-center justify-center">
         <InterviewerIcon />
       </div>
     </Avatar>
-    <div className="bg-card rounded-2xl px-4 py-3 shadow-soft border border-border/50">
+    <div className="bg-card rounded-lg px-4 py-3 border border-border/50">
       <div className="flex gap-1">
         {[0, 150, 300].map((delay) => (
           <div

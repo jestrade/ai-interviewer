@@ -73,6 +73,7 @@ describe("useAuth Hook", () => {
       expect(result.current).toHaveProperty("user");
       expect(result.current).toHaveProperty("isLoading");
       expect(result.current).toHaveProperty("signInWithGoogle");
+      expect(result.current).toHaveProperty("signInAsAdmin");
       expect(result.current).toHaveProperty("logOut");
       expect(typeof result.current.signInWithGoogle).toBe("function");
       expect(typeof result.current.logOut).toBe("function");

@@ -18,6 +18,7 @@ describe("auth types", () => {
       user: null,
       isLoading: false,
       signInWithGoogle: async () => {},
+      signInAsAdmin: async () => {},
       logOut: async () => {},
     };
     await expect(context.signInWithGoogle("ceo")).resolves.toBeUndefined();

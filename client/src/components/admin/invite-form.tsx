@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { Loader2, UserPlus } from "lucide-react";
+import { Loader2, SendHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -36,8 +36,8 @@ export const InviteForm = ({
         className="h-11 bg-background"
         disabled={isPending}
       />
-      <Button type="submit" disabled={isPending || !email.trim()} className="h-11 bg-gradient-primary">
-        {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4 mr-2" />}
+      <Button type="submit" disabled={isPending || !email.trim()} className="h-11 bg-primary">
+        {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <SendHorizontal />}
         Invite
       </Button>
     </form>

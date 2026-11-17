@@ -47,10 +47,11 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         const access = await apiFunctions.whoami();
         const role = localStorage.getItem(ROLE_KEY) ?? "";
         if (!access.allowed) return await rejectUninvited();
-        // Without a live session a new interview must be started with a role.
+        // Without a live session a new interview needs a role; the admin
+        // may stay signed in without one (admin console only).
         if (!sessionStorage.hasSessionId()) {
-          if (!role) return await signOut(auth);
-          await authenticate.mutateAsync({ role });
+          if (role) await authenticate.mutateAsync({ role });
+          else if (!access.isAdmin) return await signOut(auth);
         }
         setUser({
           id: firebaseUser.uid,
@@ -99,6 +100,37 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     [authenticate, createUser]
   );
 
+  const signInAsAdmin = useCallback(async () => {
+    setIsLoading(true);
+    isSigningIn.current = true;
+    try {
+      const { user: u } = await signInWithPopup(auth, googleProvider);
+      const access = await apiFunctions.whoami();
+      if (!access.isAdmin) {
+        await signOut(auth);
+        toast({
+          title: "Admin access only",
+          description: "This account is not the administrator.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setUser({
+        id: u.uid,
+        email: u.email ?? "",
+        name: u.displayName ?? "",
+        avatar: u.photoURL,
+        role: "",
+        isAdmin: true,
+      });
+    } catch (error) {
+      notifyError("Admin sign in failed:" + error);
+    } finally {
+      isSigningIn.current = false;
+      setIsLoading(false);
+    }
+  }, []);
+
   const logOut = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -113,8 +145,8 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const value = useMemo(
-    () => ({ user, isLoading, signInWithGoogle, logOut }),
-    [user, isLoading, signInWithGoogle, logOut]
+    () => ({ user, isLoading, signInWithGoogle, signInAsAdmin, logOut }),
+    [user, isLoading, signInWithGoogle, signInAsAdmin, logOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

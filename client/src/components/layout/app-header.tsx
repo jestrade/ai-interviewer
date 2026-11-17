@@ -3,7 +3,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { User } from "@/contexts/auth/types";
 import { formatClock, useElapsedTimer } from "@/hooks/use-elapsed-timer";
-import { InterviewerIcon } from "@/components/chat/interviewer-icon";
+import { BrandMark } from "@/components/brand/brand-mark";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 export const AppHeader = ({
   user,
@@ -17,12 +18,10 @@ export const AppHeader = ({
   const elapsed = useElapsedTimer();
 
   return (
-    <header className="bg-card border-b border-border/50 shadow-soft">
+    <header className="bg-card border-b border-border/50">
       <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-soft">
-            <InterviewerIcon className="w-6 h-6 text-white" />
-          </div>
+          <BrandMark />
           <div>
             <h1 className="text-lg font-semibold text-foreground">AI Interviewer</h1>
             <p className="text-xs text-muted-foreground">Practice your interview skills</p>
@@ -46,9 +45,11 @@ export const AppHeader = ({
             </AvatarFallback>
           </Avatar>
 
+          <ThemeToggle />
+
           {onAdmin && (
             <Button variant="outline" size="sm" onClick={onAdmin}>
-              <ShieldCheck className="w-4 h-4 mr-2" />
+              <ShieldCheck />
               Admin
             </Button>
           )}

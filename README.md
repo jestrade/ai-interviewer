@@ -1,404 +1,167 @@
 # AI Interviewer
 
-A professional interview simulation platform that uses AI to conduct interactive technical interviews. The application features a modern React/TypeScript frontend and a Node.js/Express backend that integrates with Google's Gemini AI for generating role-specific interview questions and evaluating responses in real-time.
+A professional interview simulation platform that uses AI to conduct interactive interviews. A React/TypeScript frontend talks to **Firebase Cloud Functions** that call Google's Gemini model to ask role-specific questions, adapt to the candidate's answers and produce feedback at the end.
 
-## Why AI Interviewer is an AI Agent
-
-AI Interviewer embodies the characteristics of an intelligent agent through its ability to:
-
-- **Perceive Environment**: Continuously monitors the interview context, including user responses, conversation history, and session state
-- **Reason and Plan**: Analyzes candidate responses in real-time, determines appropriate follow-up questions, and adapts the interview difficulty based on performance
-- **Act Autonomously**: Makes independent decisions about question selection, conversation flow, and interview pacing without human intervention
-- **Learn from Context**: Maintains conversation history and uses it to inform subsequent questions, creating a coherent and adaptive interview experience
-- **Communicate Naturally**: Engages in human-like dialogue, understanding both voice and text inputs while generating contextually relevant responses
-- **Achieve Goals**: Works toward the objective of conducting comprehensive technical interviews that accurately assess candidate capabilities
-
-The AI agent operates as a sophisticated conversational partner that can evaluate technical knowledge, problem-solving approaches, and communication skills while maintaining the professional standards of a real interviewer.
+Live app: https://ai-interviewer-1d892.web.app
 
 ## Features
 
-- 🎤 Voice and text-based interview simulation
-- 🎯 Role-specific interview questions (Junior to Staff Engineer levels)
-- 🔄 Real-time AI-powered conversation
-- 🎨 Modern, responsive UI with dark/light mode
-- 🔒 Secure authentication with Firebase (includes development mode)
-- 📊 Session persistence and management with Redis
-- 🎙️ Voice input with speech-to-text
-- 🎧 Text-to-speech for AI responses
-- 📱 Mobile-friendly interface
-- 🧪 Comprehensive test suite with Jest and React Testing Library
+- 🎤 Voice (Web Speech API) and text interviews, with text-to-speech for the interviewer
+- 🎯 Role-specific interviews: engineering, project/program management, leadership and oil & gas roles
+- 🧠 Gemini-powered conversation and a per-question feedback report
+- 🔒 **Invite-only access**: only Google accounts invited by the admin can sign in
+- 🛡️ **Admin console** (`/admin`): invite or revoke users by email and see each user's last access, interview attempts and the roles they practiced
+- 🎨 [Flat UI](https://designmodo.github.io/Flat-UI/)-inspired design with **light and dark mode** (follows the system, switchable from every page)
+- 📱 Responsive interface
 
-## Tech Stack
+## Architecture
 
-### Frontend
-
-- ⚛️ React 18+ with TypeScript
-- 🚀 Vite for ultra-fast development
-- 🎨 Shadcn UI components with Tailwind CSS
-- 🔥 React Query for data fetching
-- 🎤 Web Speech API for voice interactions
-- 🔐 Firebase Authentication
-- 📦 pnpm for package management
-- 🎭 Framer Motion for animations
-- 🧪 Jest with React Testing Library for testing
-
-### Backend
-
-- 🛠️ Node.js with Express
-- 🤖 Google Gemini AI for interview logic
-- 🔴 Redis for session management and data persistence
-- 🔒 CORS and security middleware
-- 📝 Structured logging with Winston
-- 🔥 Firebase Admin SDK for authentication and data storage
-- 📡 RESTful API design
-- 🔄 WebSocket for real-time updates (future)
-
-## Session Management
-
-The application uses **Redis-based session management** instead of traditional express-session:
-
-- **Stateless Architecture**: No server-side session storage dependency
-- **Redis Storage**: Interview data stored in Redis with TTL (1 hour)
-- **Session IDs**: Client-managed unique identifiers passed via headers
-- **Auto-Extension**: Session TTL extended on each request
-- **Scalability**: Redis can be shared across multiple server instances
-- **Performance**: Direct Redis access is faster than session middleware
-
-### Session Flow
-
-1. **Authentication**: Client receives session ID from `/init` endpoint
-2. **Storage**: Session ID stored in localStorage and Redis
-3. **Requests**: Session ID sent in `X-Session-ID` header
-4. **Management**: Interview history, status, and role managed via Redis
-5. **Cleanup**: Sessions automatically expire and can be manually ended
-
-## Prerequisites
-
-- Node.js (v18 or higher)
-- pnpm (recommended) or npm
-- Google Gemini API key
-- Firebase project with Authentication enabled
-- Redis server (local or cloud)
-- Modern web browser with WebRTC and Web Speech API support
-
-## Getting Started
-
-### 1. Clone the repository
-
-```bash
-git clone <repository-url>
-cd ai-interviewer
+```
+Browser (React + Vite)  ──Firebase Auth (Google)──►  ID token
+        │
+        └── httpsCallable ──► Cloud Functions (Node 22, us-central1)
+                                   │  verified token + invitation check
+                                   ├── Firestore  (sessions, users, invitations, audits)
+                                   └── Gemini API (key in Secret Manager)
 ```
 
-### 2. Set up the backend
+- **Hosting** serves `client/dist`.
+- **Functions** are callable (`onCall`) so the Firebase ID token travels automatically. Every function verifies a signed-in, email-verified user who is either the admin or invited; interview sessions are bound to the caller's email.
+- **Firestore** is only reachable through the functions: `firestore.rules` denies all direct client access.
+- Sessions live in the `sessions` collection and expire 1 hour after last use (a Firestore TTL policy on `expiresAt` deletes them).
 
-```bash
-cd node-server
-cp .env.example .env
-```
+### Functions
 
-The `.env.example` file contains all the required environment variables. Simply rename it to `.env` and update the values:
+| Function | Who | Purpose |
+| --- | --- | --- |
+| `whoami` | any signed-in user | Returns `{ email, isAdmin, allowed }`; never throws for uninvited users |
+| `init` | invited / admin | Starts an interview session for a role and records the attempt |
+| `createUser` | invited / admin | Upserts the user profile |
+| `sendMessage` | invited / admin | Sends a candidate message and returns the interviewer's reply |
+| `endInterview` | invited / admin | Ends the interview |
+| `getFeedback` | invited / admin | Generates per-question feedback |
+| `listInvitations` | admin | Invitees with last access, attempts and roles |
+| `inviteUser` | admin | Adds an email to the allowlist |
+| `revokeInvitation` | admin | Removes an email from the allowlist |
+| `wakeup` | anyone | Health check |
 
-```env
-# Server Configuration
-HTTP_PORT=3001
-HTTP_BASE_URL=http://localhost
-HTTP_SESSION_KEY=your_session_secret
-HTTP_FRONTEND_ORIGIN=
+### Design patterns used
 
-# Gemini AI Configuration
-GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_MODEL=gemini-pro
+- **Adapter** – `client/src/services/api.ts` keeps a small `apiFunctions` surface and hides the callable transport.
+- **Guard (single entry point)** – `functions/src/access.js` (`requireAccess`, `requireAdmin`) is the one place access rules live.
+- **Custom hooks / composition** – the chat is split into `useInterviewChat`, `useSpeechRecognition`, `useMicrophone` and small presentational components.
 
-# Redis Configuration
-REDIS_USERNAME=your_redis_username
-REDIS_PASSWORD=your_redis_password
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-# Firebase Service Account Configuration
-FIREBASE_PROJECT_ID=
-FIREBASE_PRIVATE_KEY_ID=
-FIREBASE_PRIVATE_KEY=
-FIREBASE_CLIENT_EMAIL=
-FIREBASE_CLIENT_ID=
-FIREBASE_AUTH_URI=
-FIREBASE_TOKEN_URI=
-FIREBASE_AUTH_PROVIDER_X509_CERT_URL=
-FIREFACE_CLIENT_X509_CERT_URL=
-FIREBASE_UNIVERSE_DOMAIN=
-
-# Sentry Configuration
-SENTRY_DSN=your_sentry_dsn_here
-```
-
-Install dependencies and start the server:
-
-```bash
-pnpm install
-pnpm start
-```
-
-The backend will start on `http://localhost:3001`
-
-### 3. Set up the frontend
-
-In a new terminal window:
-
-```bash
-cd client
-cp .env.example .env
-```
-
-The `.env.example` file contains all the required environment variables. Simply rename it to `.env` and update the values:
-
-```env
-# API Configuration
-VITE_API_BASE_URL=http://localhost:3001/api
-
-# Firebase Configuration
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your-messaging-sender-id
-VITE_FIREBASE_APP_ID=your-app-id
-VITE_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
-
-# Optional: Sentry for error tracking
-VITE_SENTRY_DSN=your_sentry_dsn
-```
-
-Install dependencies and start the development server:
-
-```bash
-pnpm install
-pnpm dev
-```
-
-The frontend will be available at `http://localhost:5173`
-
-## Usage
-
-1. Open the application in your browser at `http://localhost:5173`
-2. Sign in with your Google account (development mode available for testing)
-3. Select your target role (Junior, Mid, Senior, or Staff Engineer)
-4. Choose your preferred input method (voice or text)
-5. The AI interviewer will guide you through the interview with role-specific questions
-6. Respond naturally - the AI will adapt to your answers
-7. Complete all questions to finish the interview
-8. Review your session summary and feedback
-
-### Development Mode
-
-For testing purposes, the application includes a development mode that bypasses Google authentication. This mode is automatically enabled in development environments and allows you to sign in directly with a role selection.
-
-## Project Structure
+## Repository layout
 
 ```
 ai-interviewer/
-├── client/                 # Frontend React application
-│   ├── public/             # Static assets
-│   ├── src/
-│   │   ├── assets/         # Images, fonts, etc.
-│   │   ├── components/     # Reusable UI components
-│   │   │   ├── ui/         # Shadcn UI components
-│   │   │   └── auth/       # Authentication components
-│   │   ├── contexts/       # React contexts
-│   │   │   └── auth/       # Authentication context and tests
-│   │   ├── hooks/          # Custom React hooks
-│   │   ├── lib/            # Utility functions
-│   │   ├── pages/          # Page components
-│   │   │   ├── Auth.tsx    # Authentication page
-│   │   │   └── Chat.tsx    # Main interview interface
-│   │   ├── services/       # API services and Firebase integration
-│   │   │   ├── api.ts        # API client with session management
-│   │   │   └── session-storage.ts  # LocalStorage session wrapper
-│   │   ├── tests/          # Test utilities and mocks
-│   │   ├── App.tsx         # Main app component
-│   │   └── main.tsx        # Entry point
-│   ├── .env.example        # Environment variables example
-│   ├── index.html          # HTML template
-│   ├── jest.config.js      # Jest testing configuration
-│   ├── package.json        # Dependencies and scripts
-│   └── tsconfig.json       # TypeScript config
-│
-├── node-server/                 # Backend server
-│   ├── config/             # Configuration
-│   │   └── index.js        # App configuration
-│   ├── constants.js        # Application constants
-│   ├── data_models/        # Data models and prompts
-│   │   └── prompts.js      # AI prompt templates
-│   ├── firebase-service-account-key.json  # Firebase service account
-│   ├── http/               # HTTP server setup
-│   │   ├── api/            # API routes and controllers
-│   │   │   ├── controllers/    # Request handlers
-│   │   │   │   ├── authentication-controllers.js
-│   │   │   │   ├── interview-controllers.js
-│   │   │   │   └── user-controllers.js
-│   │   │   ├── middlewares/    # Express middleware
-│   │   │   │   ├── cors/
-│   │   │   │   └── session/      # Session management
-│   │   │   │       ├── extract-session.js
-│   │   │   │       └── check-session.js
-│   │   │   ├── routes/        # Route definitions
-│   │   │   │   ├── authentication-routes.js
-│   │   │   │   ├── interview-routes.js
-│   │   │   │   └── user-routes.js
-│   │   │   └── index.js        # API router
-│   │   └── index.js        # HTTP server entry point
-│   ├── services/          # Business logic services
-│   │   ├── audit-service.js
-│   │   ├── firebase/      # Firebase integration
-│   │   │   └── index.js
-│   │   ├── interview-service.js
-│   │   ├── interview-session/  # Redis session management
-│   │   │   └── index.js
-│   │   ├── redis/         # Redis client
-│   │   │   └── index.js
-│   │   └── userService.js
-│   ├── .env.example        # Environment example
-│   ├── package.json        # Dependencies
-│   └── server.js           # Express setup
-│
-├── .gitignore             # Git ignore file
-├── README.md              # This file
-└── firebase-service-account-key.json  # Firebase service account (gitignored)
+├── client/                  # React + TypeScript + Vite app
+│   └── src/
+│       ├── components/      # chat/, auth/, admin/, feedback/, layout/, brand/, theme/, ui/ (shadcn)
+│       ├── contexts/auth/   # AuthProvider (Google sign in, admin sign in, session restore)
+│       ├── hooks/           # use-speech-recognition, use-microphone, use-elapsed-timer, ...
+│       ├── lib/             # roles, speech helpers
+│       ├── pages/           # root (routes), private (interview), admin, admin-login
+│       └── services/        # api.ts (callable adapter), firebase.ts, sentry, session storage
+├── functions/               # Firebase Cloud Functions (backend)
+│   ├── index.js             # function exports
+│   └── src/                 # access.js, handlers.js, config.js, services/, data/prompts.js
+├── firebase.json            # hosting + functions + firestore config
+├── firestore.rules          # deny-all (data only via functions)
+├── firestore.indexes.json   # TTL policy on sessions.expiresAt
+├── node-server/             # LEGACY Express + Redis backend, kept for reference
+└── django-server/           # LEGACY, kept for reference
 ```
 
-## Environment Variables
+> `node-server/` and `django-server/` are no longer used. The backend is Firebase Functions.
 
-Both the client and server include `.env.example` files that can be used as templates. Simply copy or rename these files to `.env` and update the values with your actual configuration.
+## Prerequisites
 
-### Backend (server/.env)
+- Node.js 22
+- [Firebase CLI](https://firebase.google.com/docs/cli) (`npm i -g firebase-tools`) logged in with access to the project
+- A Firebase project on the **Blaze** plan with Authentication (Google provider) and Firestore enabled
+- A Google Gemini API key
 
-- `HTTP_PORT`: Port for the server to listen on (default: 3001)
-- `HTTP_BASE_URL`: Base URL for the server (default: http://localhost)
-- `HTTP_SESSION_KEY`: Secret key for session encryption (required)
-- `GEMINI_API_KEY`: Your Google Gemini API key (required)
-- `GEMINI_MODEL`: The Gemini model to use (default: gemini-pro)
-- `REDIS_USERNAME`: Redis username (required)
-- `REDIS_PASSWORD`: Redis password (required)
-- `REDIS_HOST`: Redis host (default: localhost)
-- `REDIS_PORT`: Redis port (default: 6379)
-- `FIREBASE_*`: Firebase service account configuration (required)
-- `SENTRY_DSN`: Sentry DSN for error tracking (optional)
+## Setup
 
-### Frontend (client/.env)
+### 1. Functions
 
-- `VITE_API_BASE_URL`: Backend API base URL (default: http://localhost:3001/api)
-- `VITE_FIREBASE_*`: Firebase configuration (required)
-- `VITE_SENTRY_DSN`: Sentry DSN for error tracking (optional)
-
-## Development
-
-### Running in Development Mode
-
-1. Start the backend server:
-
-   ```bash
-   cd node-server
-   pnpm dev
-   ```
-
-2. In a separate terminal, start the frontend development server:
-   ```bash
-   cd client
-   pnpm dev
-   ```
-
-### Building for Production
-
-1. Build the frontend:
-
-   ```bash
-   cd client
-   pnpm build
-   ```
-
-2. Start the production server:
-   ```bash
-   cd ../node-server
-   pnpm start
-   ```
-
-### Code Quality
-
-- Run linter:
-  ```bash
-  pnpm lint
-  ```
-- Run type checking:
-  ```bash
-  pnpm type-check
-  ```
-- Format code:
-  ```bash
-  pnpm format
-  ```
-
-### Testing
-
-The project includes a comprehensive test suite using Jest and React Testing Library.
-
-- Run all tests:
-  ```bash
-  npm test
-  ```
-- Run tests with coverage:
-  ```bash
-  npm run test:coverage
-  ```
-- Run tests in watch mode:
-  ```bash
-  npm run test:watch
-  ```
-- Run specific test file:
-  ```bash
-  npm test -- auth-context.test.tsx
-  ```
-
-#### Test Structure
-
-Tests are organized alongside the components they test:
-
-```
-src/
-├── contexts/
-│   └── auth/
-│       ├── tests/
-│       │   ├── auth-context.test.tsx
-│       │   ├── hooks.test.tsx
-│       │   └── types.test.tsx
-│       └── ...
-└── ...
+```bash
+cd functions
+npm install
+cp .env.example .env          # set GEMINI_MODEL, OFFENSIVE_KEYWORDS, ADMIN_EMAIL
+firebase functions:secrets:set GEMINI_API_KEY   # paste the key when prompted
 ```
 
-#### Authentication Testing
+`.env` holds non-secret parameters (it is git-ignored). The Gemini key is stored in Secret Manager.
 
-The authentication system includes comprehensive test coverage for:
+### 2. Client
 
-- Context provider behavior
-- Custom hooks (useAuth)
-- Type safety and interface compliance
-- Development mode authentication
-- Error handling and loading states
-- Runtime validation
+```bash
+cd client
+cp .env.example .env          # fill in the VITE_FIREBASE_* values from the Firebase console
+npm install
+npm run dev                   # http://localhost:5173
+```
+
+The dev client talks to the **deployed** functions. To use the local emulator instead, run `firebase emulators:start --only functions,firestore,auth` and connect the SDK to it.
+
+### Environment variables
+
+Functions (`functions/.env`):
+
+| Variable | Description |
+| --- | --- |
+| `ADMIN_EMAIL` | The admin account (default `jesuestrada@gmail.com`) |
+| `GEMINI_MODEL` | Gemini model name (default `gemini-2.5-flash`) |
+| `OFFENSIVE_KEYWORDS` | Comma-separated words that end the interview |
+| `GEMINI_API_KEY` | **Secret** – set with `firebase functions:secrets:set` |
+
+Client (`client/.env`): `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`, `VITE_FIREBASE_MEASUREMENT_ID`, and optionally `VITE_SENTRY_DSN`.
+
+## Usage
+
+**Candidates**
+
+1. Ask the admin to invite your Google email.
+2. Open the app, pick the role you are applying for and continue with Google.
+3. Answer by typing or with the microphone. When the interview ends, open **Show Feedback**.
+
+**Admin**
+
+1. On the sign-in page choose **Admin Login** (`/admin/login`) and sign in with the admin Google account.
+2. In `/admin` enter an email and press **Invite**. No email is sent automatically: use the ✉️ button on the row to open a prepared message in your mail client.
+3. The table shows status (Pending until the first sign in), last access, number of interview attempts and the roles each person practiced. Revoke access with the trash icon; the person is blocked on their next request.
+
+Each sign-in with a role counts as one interview attempt.
+
+## Deploying
+
+```bash
+cd client && npm run build && cd ..
+firebase deploy --project ai-interviewer-1d892                      # everything
+firebase deploy --only functions --project ai-interviewer-1d892     # just the backend
+firebase deploy --only hosting --project ai-interviewer-1d892       # just the frontend
+firebase deploy --only firestore --project ai-interviewer-1d892     # rules + TTL index
+```
+
+Container images of old function versions are cleaned up automatically after 1 day (`firebase functions:artifacts:setpolicy`).
+
+## Testing
+
+```bash
+cd client && npm test        # React Testing Library + Jest
+cd functions && npm test     # access-control unit tests
+```
+
+## Theming
+
+The design tokens live in `client/src/index.css` (Flat UI palette: green sea / turquoise, peter river, midnight blue, clouds, alizarin; flat surfaces, 2px borders, 6px radius, Lato font) with a `.dark` variant. Theme switching uses `next-themes`; the toggle is `components/theme/theme-toggle.tsx`. Icons come from [lucide-react](https://lucide.dev).
 
 ## Troubleshooting
 
-- **Environment setup**: Ensure you've copied `.env.example` to `.env` in both client and server directories
-- **CORS issues**: Ensure `VITE_API_BASE_URL` matches the backend address and includes the correct protocol
-- **Microphone access**: Check browser permissions and ensure no other app is using the microphone
-- **Firebase errors**: Verify your Firebase configuration and enable required services
-- **Redis connection**: Ensure Redis server is running and credentials are correct
-- **Session issues**: Check that session ID is being sent in `X-Session-ID` header
-- **AI responses**: Check Gemini API key and quota
-- **Check logs**:
-  - Browser console for client-side errors
-  - Server logs for backend issues
-  - Network tab for API request/response details
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **"Access denied" after signing in** – the Google account has not been invited (or was revoked). Ask the admin.
+- **Admin Login says "Admin access only"** – sign in with the account configured in `ADMIN_EMAIL`.
+- **Functions deploy fails** – the project must be on the Blaze plan, and `GEMINI_API_KEY` must exist as a secret.
+- **Microphone** – check browser permissions; the Web Speech API works best in Chrome/Edge.
+- **Logs** – `firebase functions:log --project ai-interviewer-1d892`.

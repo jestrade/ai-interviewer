@@ -6,94 +6,97 @@
 All colors MUST be HSL.
 */
 
+/*
+ * Flat UI inspired design system (https://designmodo.github.io/Flat-UI/):
+ * flat colors (turquoise / peter river / midnight blue / clouds), no gradients
+ * or soft shadows, 2px borders and 6px radius. All colors are HSL.
+ */
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 215 25% 15%;
+    --background: 192 15% 94%;           /* clouds   #ecf0f1 */
+    --foreground: 210 29% 24%;           /* midnight #2c3e50 */
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 210 29% 24%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 210 29% 24%;
 
-    --primary: 217 91% 60%;
+    --primary: 168 76% 36%;              /* green sea #16a085 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 189 94% 43%;
+    --secondary: 204 70% 53%;            /* peter river #3498db */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 192 15% 90%;
+    --muted-foreground: 210 15% 40%;
 
-    --accent: 189 94% 43%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 192 15% 88%;
+    --accent-foreground: 210 29% 24%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 6 78% 57%;            /* alizarin #e74c3c */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    --success: 145 63% 42%;              /* emerald */
+    --warning: 37 90% 51%;               /* orange   */
 
-    --radius: 0.75rem;
-    
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(189 94% 43%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(210 40% 98%) 0%, hsl(210 40% 96%) 100%);
-    --shadow-soft: 0 4px 20px -2px hsl(217 91% 60% / 0.1);
-    --shadow-medium: 0 8px 30px -4px hsl(217 91% 60% / 0.15);
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --border: 204 8% 76%;                /* silver   #bdc3c7 */
+    --input: 204 8% 76%;
+    --ring: 168 76% 36%;
+
+    --radius: 0.375rem;
+
+    --gradient-primary: linear-gradient(hsl(var(--primary)), hsl(var(--primary)));
+    --gradient-subtle: linear-gradient(hsl(var(--background)), hsl(var(--background)));
+    --shadow-soft: none;
+    --shadow-medium: none;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 215 28% 12%;
-    --foreground: 210 40% 98%;
+    --background: 210 29% 15%;
+    --foreground: 192 15% 94%;
 
-    --card: 215 25% 16%;
-    --card-foreground: 210 40% 98%;
+    --card: 210 29% 20%;                 /* wet asphalt family */
+    --card-foreground: 192 15% 94%;
 
-    --popover: 215 25% 16%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 210 29% 20%;
+    --popover-foreground: 192 15% 94%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 168 76% 42%;              /* turquoise #1abc9c */
+    --primary-foreground: 210 29% 12%;
 
-    --secondary: 189 94% 43%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 204 70% 53%;
+    --secondary-foreground: 210 29% 12%;
 
-    --muted: 215 25% 20%;
-    --muted-foreground: 215 16% 65%;
+    --muted: 210 29% 24%;
+    --muted-foreground: 204 12% 70%;
 
-    --accent: 189 94% 43%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 210 29% 26%;
+    --accent-foreground: 192 15% 94%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 6 78% 57%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 25% 20%;
-    --input: 215 25% 20%;
-    --ring: 217 91% 60%;
-    
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(189 94% 43%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(215 28% 12%) 0%, hsl(215 25% 16%) 100%);
-    --shadow-soft: 0 4px 20px -2px hsl(217 91% 60% / 0.2);
-    --shadow-medium: 0 8px 30px -4px hsl(217 91% 60% / 0.25);
+    --success: 145 63% 49%;
+    --warning: 37 90% 55%;
+
+    --border: 210 20% 32%;
+    --input: 210 20% 32%;
+    --ring: 168 76% 42%;
+
+    --gradient-primary: linear-gradient(hsl(var(--primary)), hsl(var(--primary)));
+    --gradient-subtle: linear-gradient(hsl(var(--background)), hsl(var(--background)));
+    --shadow-soft: none;
+    --shadow-medium: none;
   }
 }
 
@@ -103,6 +106,6 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
   }
 }

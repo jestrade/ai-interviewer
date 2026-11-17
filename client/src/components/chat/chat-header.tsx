@@ -1,7 +1,6 @@
-import { Mic } from "lucide-react";
+import { BotMessageSquare, Mic } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { cn, getRoleName } from "@/lib";
-import LaptopImage from "@/assets/img/laptop.svg";
 
 export const ChatHeader = ({ role, isTyping }: { role: string; isTyping: boolean }) => (
   <div className="bg-card border-b border-border/50 py-8">
@@ -9,17 +8,17 @@ export const ChatHeader = ({ role, isTyping }: { role: string; isTyping: boolean
       <div className="relative">
         <Avatar
           className={cn(
-            "w-32 h-32 border-4 border-primary/30 shadow-medium",
+            "w-32 h-32 border-4 border-primary/30",
             isTyping && "animate-pulse"
           )}
         >
-          <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
-            <img src={LaptopImage} alt="Laptop" className="w-16 h-16" />
+          <div className="w-full h-full bg-primary flex items-center justify-center">
+            <BotMessageSquare className="w-16 h-16 text-primary-foreground" strokeWidth={1.75} aria-hidden="true" />
           </div>
         </Avatar>
         {isTyping && (
-          <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-secondary rounded-full flex items-center justify-center shadow-soft animate-bounce">
-            <Mic className="w-4 h-4 text-white" />
+          <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-secondary rounded-full flex items-center justify-center animate-bounce">
+            <Mic className="w-4 h-4 text-primary-foreground" />
           </div>
         )}
       </div>

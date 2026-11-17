@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Lightbulb, Loader2, MessageCircleQuestion } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { useToast } from "@/hooks/use-toast";
 import { useInterviewApi } from "@/services/api";
 import { notifyError } from "@/services/sentry";
@@ -47,7 +48,7 @@ const Feedback = () => {
   }, []);
 
   const backButton = (
-    <Button onClick={() => navigate("/")} variant="ghost" size="sm" className="hover:bg-muted">
+    <Button onClick={() => navigate("/")} variant="ghost" size="sm">
       <ArrowLeft className="w-4 h-4 mr-2" />
       Back to Chat
     </Button>
@@ -81,15 +82,16 @@ const Feedback = () => {
 
   return (
     <Screen>
-      <header className="bg-card border-b border-border/50 shadow-soft">
+      <header className="bg-card border-b border-border/50">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
           {backButton}
-          <div>
-            <h1 className="text-lg font-semibold text-foreground">Interview Feedback</h1>
+          <div className="flex-1">
+            <h1 className="text-lg font-bold text-foreground">Interview Feedback</h1>
             <p className="text-xs text-muted-foreground">
               Review your performance and areas for improvement
             </p>
           </div>
+          <ThemeToggle />
         </div>
       </header>
 
@@ -98,7 +100,8 @@ const Feedback = () => {
           {items.map((item, index) => (
             <Card key={index} className="shadow-soft border-border/50">
               <CardHeader>
-                <CardTitle className="text-base">
+                <CardTitle className="text-base flex items-start gap-2">
+                  <MessageCircleQuestion className="w-5 h-5 mt-0.5 shrink-0 text-secondary" aria-hidden="true" />
                   {index + 1}. {item.question}
                 </CardTitle>
               </CardHeader>
@@ -108,7 +111,10 @@ const Feedback = () => {
                   <p>{item.answer}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-blue-600 mb-1">Feedback</p>
+                  <p className="font-bold text-primary mb-1 flex items-center gap-1">
+                    <Lightbulb className="w-4 h-4" aria-hidden="true" />
+                    Feedback
+                  </p>
                   <p>{item.feedback}</p>
                 </div>
               </CardContent>

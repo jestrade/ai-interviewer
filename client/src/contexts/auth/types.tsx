@@ -11,5 +11,7 @@ export interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   signInWithGoogle: (role: string) => Promise<void>;
+  /** Admin sign in: no role and no interview session. */
+  signInAsAdmin: () => Promise<void>;
   logOut: () => Promise<void>;
 }
