@@ -8,9 +8,6 @@ const config = {
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
   },
-  api: {
-    url: import.meta.env.VITE_API_BASE_URL,
-  },
   sentry: {
     dsn: import.meta.env.VITE_SENTRY_DSN,
   },

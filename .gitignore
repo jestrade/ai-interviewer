@@ -45,3 +45,6 @@ env/
 build/
 dist/
 *.egg-info/
+# Firebase
+.firebase/
+firebase-debug*.log

@@ -8,9 +8,6 @@ const config = {
     appId: "test-app-id",
     measurementId: "G-TEST",
   },
-  api: {
-    url: "http://localhost:3000",
-  },
   sentry: {
     dsn: "",
   },

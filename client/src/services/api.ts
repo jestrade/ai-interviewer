@@ -1,94 +1,64 @@
-import axios from "axios";
-import config from "@/config";
+import { httpsCallable } from "firebase/functions";
 import { notifyError } from "@/services/sentry";
 import { useMutation } from "@tanstack/react-query";
+import { functions } from "./firebase";
 import sessionStorage from "./session-storage";
 
-const api = axios.create({
-  baseURL: config.api.url,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Add session ID to requests
-api.interceptors.request.use((config) => {
-  const sessionId = sessionStorage.getSessionId();
-  if (sessionId) {
-    config.headers["X-Session-ID"] = sessionId;
-  }
-  return config;
-});
-
-api.interceptors.request.use(
-  (config) => {
-    // const token = localStorage.getItem('token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+/**
+ * Thin adapter over Firebase callable functions. It keeps the call surface
+ * the UI already uses, so components don't know about the transport.
+ */
+const call = async <T = any>(name: string, data?: object): Promise<T> => {
+  try {
+    const result = await httpsCallable<object, T>(functions, name)(data ?? {});
+    return result.data;
+  } catch (error) {
     notifyError("API Error:" + error);
-    return Promise.reject(error);
+    throw error;
   }
-);
+};
+
+const blobToBase64 = (blob: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+    reader.readAsDataURL(blob);
+  });
+
+const sessionId = () => sessionStorage.getSessionId();
 
 // Direct API functions (for use with React Query)
 export const apiFunctions = {
-  sendMessage: async (message: string) => {
-    const response = await api.post("/interviews", { message });
-    return response.data;
-  },
+  sendMessage: (message: string) =>
+    call("sendMessage", { sessionId: sessionId(), message }),
 
-  sendAudio: async (audioBlob: Blob) => {
-    const formData = new FormData();
-    formData.append("audio", audioBlob, "recording.webm");
-
-    const response = await api.post("/interviews", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
-  },
+  sendAudio: async (audioBlob: Blob) =>
+    call("sendMessage", {
+      sessionId: sessionId(),
+      audio: await blobToBase64(audioBlob),
+    }),
 
   endInterview: async () => {
-    const response = await api.post("/interviews/end");
+    const data = await call("endInterview", { sessionId: sessionId() });
     sessionStorage.clearSessionId();
-    return response.data;
+    return data;
   },
 
   authenticate: async ({ email, role }: { email: string; role: string }) => {
-    const response = await api.post("/init", { email, role });
-    const { sessionId } = response.data;
-
-    if (sessionId) {
-      sessionStorage.setSessionId(sessionId);
+    const data = await call("init", { email, role });
+    if (data.sessionId) {
+      sessionStorage.setSessionId(data.sessionId);
     }
-
-    return response.data;
+    return data;
   },
 
-  wakeup: async () => {
-    const response = await api.post("/init/wakeup");
-    return response.data;
-  },
+  wakeup: () => call("wakeup"),
 
-  createUser: async ({ email, name }: { email: string; name: string }) => {
-    const response = await api.post("/users", { email, name });
-    return response.data;
-  },
+  createUser: ({ email, name }: { email: string; name: string }) =>
+    call("createUser", { email, name }),
 
-  getFeedback: async () => {
-    const response = await api.get("/interviews/feedback");
-    return response.data;
-  },
+  getFeedback: () => call("getFeedback", { sessionId: sessionId() }),
 };
 
 // React Query hooks for interview operations
@@ -132,4 +102,4 @@ export const useAuthApi = () => ({
   }),
 });
 
-export default api;
+export default apiFunctions;

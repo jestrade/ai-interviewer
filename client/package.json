@@ -12,7 +12,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "deploy": "yarn run build && firebase deploy"
+    "deploy": "yarn run build && firebase deploy --config ../firebase.json --project ai-interviewer-1d892"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
