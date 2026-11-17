@@ -1,44 +1,15 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth/hooks";
-import { ROLE_LABELS } from "@/lib/constants";
-import { SelectGroup } from "@radix-ui/react-select";
 import config from "@/config";
-import LoginButton from "./login-button";
 import Logo from "@/assets/img/logo.svg";
 import GoogleLogo from "@/assets/img/google-logo.svg";
-import { useAuthApi } from "@/services/api";
+import LoginButton from "./login-button";
+import { RoleSelect } from "./role-select";
 
 const Auth = () => {
-  const { user, isLoading, signInWithGoogle, signInWithDevMode } = useAuth();
-  const [role, setRole] = useState<string>("");
-  const navigate = useNavigate();
-
-  const { wakeup } = useAuthApi();
-
-  useEffect(() => {
-    if (user) {
-      navigate("/private/chat");
-    }
-  }, [user, navigate]);
-
-  useEffect(() => {
-    wakeup.mutateAsync();
-  }, []);
+  const { isLoading, signInWithGoogle, signInWithDevMode } = useAuth();
+  const [role, setRole] = useState("");
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
@@ -57,80 +28,25 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
 
-        <p className="text-sm text-muted-foreground text-center mb-2 p-4">
-          Select the role you are applying for:
-          <Select onValueChange={(value) => setRole(value)}>
-            <SelectTrigger className="w-full mt-2">
-              <SelectValue placeholder="Select a role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                  Engineering Roles
-                </div>
-                {Object.entries(ROLE_LABELS.engineering).map(
-                  ([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectGroup>
-              <SelectGroup>
-                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                  Project & Program Management
-                </div>
-                {Object.entries(ROLE_LABELS.management).map(
-                  ([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectGroup>
-              <SelectGroup>
-                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                  Leadership & Executive
-                </div>
-                {Object.entries(ROLE_LABELS.leadership).map(
-                  ([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectGroup>
-              <SelectGroup>
-                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                  Oil & Gas Industry
-                </div>
-                {Object.entries(ROLE_LABELS.oil).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </p>
+        <RoleSelect onChange={setRole} />
 
         <CardContent className="space-y-4">
           <LoginButton
             isLoading={isLoading}
             signInFunction={signInWithGoogle}
             role={role}
-            text={"Continue with Google"}
+            text="Continue with Google"
             logo={GoogleLogo}
           />
-          {config.mode.isDevelopment ? (
+          {config.mode.isDevelopment && (
             <LoginButton
               isLoading={isLoading}
               signInFunction={signInWithDevMode}
               role={role}
-              text={"Continue with fake login (only dev mode)"}
+              text="Continue with fake login (only dev mode)"
               logo={Logo}
             />
-          ) : null}
+          )}
         </CardContent>
       </Card>
     </div>

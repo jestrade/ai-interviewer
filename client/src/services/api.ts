@@ -8,9 +8,18 @@ import sessionStorage from "./session-storage";
  * Thin adapter over Firebase callable functions. It keeps the call surface
  * the UI already uses, so components don't know about the transport.
  */
-const call = async <T = any>(name: string, data?: object): Promise<T> => {
+interface ApiResponse {
+  success?: boolean;
+  message?: string;
+  sessionId?: string;
+  text?: string;
+  code?: string | null;
+  feedback?: { question: string; answer: string; feedback: string }[];
+}
+
+const call = async (name: string, data?: object): Promise<ApiResponse> => {
   try {
-    const result = await httpsCallable<object, T>(functions, name)(data ?? {});
+    const result = await httpsCallable<object, ApiResponse>(functions, name)(data ?? {});
     return result.data;
   } catch (error) {
     notifyError("API Error:" + error);
@@ -53,8 +62,6 @@ export const apiFunctions = {
     return data;
   },
 
-  wakeup: () => call("wakeup"),
-
   createUser: ({ email, name }: { email: string; name: string }) =>
     call("createUser", { email, name }),
 
@@ -88,11 +95,6 @@ export const useInterviewApi = () => ({
 export const useAuthApi = () => ({
   authenticate: useMutation({
     mutationFn: apiFunctions.authenticate,
-    gcTime: 0,
-  }),
-
-  wakeup: useMutation({
-    mutationFn: apiFunctions.wakeup,
     gcTime: 0,
   }),
 

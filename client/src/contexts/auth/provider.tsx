@@ -1,155 +1,124 @@
-import { useState, useEffect, ReactNode } from "react";
-
+import { useCallback, useEffect, useMemo, useState, ReactNode } from "react";
 import {
-  onAuthStateChanged,
-  getAuth,
-  signInWithPopup,
   GoogleAuthProvider,
+  getAuth,
+  onAuthStateChanged,
+  signInWithPopup,
   signOut,
 } from "firebase/auth";
 
-import { app } from "../../services/firebase";
-import { useAuthApi } from "../../services/api";
+import { app } from "@/services/firebase";
+import { useAuthApi } from "@/services/api";
+import { notifyError } from "@/services/sentry";
+import config from "@/config";
 import { User } from "./types";
 import AuthContext from "./auth-context";
 
-import { notifyError } from "@/services/sentry";
-import config from "@/config";
-
-const provider = new GoogleAuthProvider();
+const googleProvider = new GoogleAuthProvider();
 const auth = getAuth(app);
-const WAIT_TIME = 3000;
+
+const ROLE_KEY = "role";
+const storedRole = () => localStorage.getItem(ROLE_KEY) ?? "";
+
+const DEV_USER = {
+  id: "dev-mode-user-id",
+  email: "dev-mode-user@email.com",
+  name: "dev-mode-user-name",
+  avatar: null,
+};
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { authenticate, createUser } = useAuthApi();
 
+  // Restore the Firebase session on reload.
   useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const userData = {
-          id: user.uid,
-          email: user.email,
-          name: user.displayName,
-          avatar: user.photoURL,
-          role: localStorage.getItem("role"),
-        };
-        setTimeout(() => {
-          setUser(userData);
-        }, WAIT_TIME);
-      }
+    return onAuthStateChanged(auth, (firebaseUser) => {
+      if (!firebaseUser) return;
+      setUser({
+        id: firebaseUser.uid,
+        email: firebaseUser.email ?? "",
+        name: firebaseUser.displayName ?? "",
+        avatar: firebaseUser.photoURL,
+        role: storedRole(),
+      });
     });
-
-    setIsLoading(false);
   }, []);
 
-  const signInWithDevMode = async (role: string) => {
-    setIsLoading(true);
-    // bypass if dev mode
-    if (config.mode.isDevelopment) {
+  /** Opens an interview session and registers the user; throws on failure. */
+  const startInterview = useCallback(
+    async (candidate: Omit<User, "role">, role: string) => {
+      const session = await authenticate.mutateAsync({ email: candidate.email, role });
+      if (!session.success) throw new Error(session.message);
+
+      const registration = await createUser.mutateAsync({
+        email: candidate.email,
+        name: candidate.name,
+      });
+      if (!registration.success) throw new Error(registration.message);
+
+      localStorage.setItem(ROLE_KEY, role);
+      setUser({ ...candidate, role });
+    },
+    [authenticate, createUser]
+  );
+
+  const signIn = useCallback(
+    async (role: string, getCandidate: () => Promise<Omit<User, "role">>) => {
+      setIsLoading(true);
       try {
-        const email = "dev-mode-user@email.com";
-        await authenticate.mutateAsync({ email, role });
-        await createUser.mutateAsync({ email, name: "dev-mode-user-name" });
-        const userData = {
-          id: "dev-mode-user-id",
-          email,
-          name: "dev-mode-user-name",
-          avatar: null,
-          role,
-        };
-        setUser(userData);
-        localStorage.setItem("role", role);
+        await startInterview(await getCandidate(), role);
       } catch (error) {
         notifyError("Error initializing interview:" + error);
+      } finally {
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
-    return;
-  };
-
-  const signInWithGoogle = async (role: string) => {
-    setIsLoading(true);
-
-    signInWithPopup(auth, provider)
-      .then(async (result) => {
-        const {
-          user: { uid, email, displayName, photoURL },
-        } = result;
-        const userData = {
-          id: uid,
-          email,
-          name: displayName,
-          avatar: photoURL,
-          role,
-        };
-
-        try {
-          const authResponse = await authenticate.mutateAsync({
-            email,
-            role,
-          });
-          if (!authResponse.success) {
-            throw new Error(authResponse.message);
-          }
-
-          const userResponse = await createUser.mutateAsync({
-            email,
-            name: displayName,
-          });
-          if (!userResponse.success) {
-            throw new Error(userResponse.message);
-          }
-          if (authResponse.success && userResponse.success) {
-            setTimeout(() => {
-              setUser(userData);
-              localStorage.setItem("role", role);
-              setIsLoading(false);
-            }, WAIT_TIME);
-          }
-        } catch (error) {
-          notifyError("Error initializing interview:" + error);
-          setIsLoading(false);
-        }
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        const email = error.customData.email;
-        const credential = GoogleAuthProvider.credentialFromError(error);
-
-        notifyError(
-          `${errorCode}: ${errorMessage} - ${email} :: ${credential}`
-        );
-        setIsLoading(false);
-      });
-  };
-
-  const logOut = async () => {
-    setIsLoading(true);
-
-    signOut(auth)
-      .then(() => {
-        console.log("User successfully signed out.");
-      })
-      .catch((error) => {
-        notifyError("Logout error:" + error);
-      })
-      .finally(() => {
-        setUser(null);
-        localStorage.removeItem("role");
-        setIsLoading(false);
-      });
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{ user, isLoading, signInWithGoogle, signInWithDevMode, logOut }}
-    >
-      {children}
-    </AuthContext.Provider>
+    },
+    [startInterview]
   );
+
+  const signInWithGoogle = useCallback(
+    (role: string) =>
+      signIn(role, async () => {
+        const { user: u } = await signInWithPopup(auth, googleProvider);
+        return {
+          id: u.uid,
+          email: u.email ?? "",
+          name: u.displayName ?? "",
+          avatar: u.photoURL,
+        };
+      }),
+    [signIn]
+  );
+
+  const signInWithDevMode = useCallback(
+    async (role: string) => {
+      if (!config.mode.isDevelopment) return;
+      await signIn(role, async () => DEV_USER);
+    },
+    [signIn]
+  );
+
+  const logOut = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await signOut(auth);
+    } catch (error) {
+      notifyError("Logout error:" + error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem(ROLE_KEY);
+      setIsLoading(false);
+    }
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, isLoading, signInWithGoogle, signInWithDevMode, logOut }),
+    [user, isLoading, signInWithGoogle, signInWithDevMode, logOut]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export default AuthProvider;
