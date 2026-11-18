@@ -7,12 +7,12 @@ const FUNCTIONS_HOST = "127.0.0.1";
 const FUNCTIONS_PORT = 5001;
 
 /**
- * Local development only. Enabled by the explicit `emulator` Vite mode
- * (`npm run dev:emulator`) and never in a production build, so a deployed
- * bundle can not be pointed at the emulators by accident.
+ * Local development only. Enabled by the explicit `emulator` Vite mode, for
+ * the dev server (`npm run dev:emulator`) and for a build served by the
+ * Hosting emulator (`npm run build:emulator`). The default `build`/`deploy`
+ * use the `production` mode, so a deployed bundle has no emulator wiring.
  */
-export const isEmulatorMode = (): boolean =>
-  import.meta.env.MODE === "emulator" && !import.meta.env.PROD;
+export const isEmulatorMode = (): boolean => import.meta.env.MODE === "emulator";
 
 export const connectEmulators = (app: FirebaseApp, functions: Functions) => {
   connectAuthEmulator(getAuth(app), AUTH_URL, { disableWarnings: true });

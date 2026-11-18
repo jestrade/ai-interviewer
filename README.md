@@ -115,11 +115,14 @@ Runs Auth, Functions and Firestore locally under the demo project `demo-ai-inter
 cp functions/.secret.local.example functions/.secret.local   # then edit GEMINI_API_KEY
 
 # terminal 1 (repo root)
-firebase emulators:start --project demo-ai-interviewer --only auth,functions,firestore --import ./emulator-data
+firebase emulators:start --config firebase.emulator.json --project demo-ai-interviewer --import ./emulator-data
 
-# terminal 2
-cd client && npm run dev:emulator    # http://localhost:8080
+# terminal 2 - pick one
+cd client && npm run dev:emulator      # Vite dev server, http://localhost:8080
+cd client && npm run build:emulator    # build served by the Hosting emulator, http://127.0.0.1:5002
 ```
+
+`firebase.emulator.json` serves `client/dist-emulator` (built by `build:emulator`), so the production `client/dist` is never used or overwritten by local testing. A plain `firebase emulators:start` serves the production build, which talks to real Firebase.
 
 - `npm run dev:emulator` uses the Vite `emulator` mode: it loads `client/.env.emulator` and connects the SDK to the emulators (`client/src/services/emulators.ts`). It is ignored by `npm run build`, so deployed bundles never contain emulator URLs.
 - `./emulator-data` seeds the admin `jesuestrada@gmail.com` (it is also `ADMIN_EMAIL` in `functions/.env.demo-ai-interviewer`), so it already appears in the Auth emulator's fake Google account picker; other emails can be added there and invited from `/admin`.
