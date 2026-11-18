@@ -115,15 +115,15 @@ Runs Auth, Functions and Firestore locally under the demo project `demo-ai-inter
 cp functions/.secret.local.example functions/.secret.local   # then edit GEMINI_API_KEY
 
 # terminal 1 (repo root)
-firebase emulators:start --project demo-ai-interviewer --only auth,functions,firestore
+firebase emulators:start --project demo-ai-interviewer --only auth,functions,firestore --import ./emulator-data
 
 # terminal 2
 cd client && npm run dev:emulator    # http://localhost:8080
 ```
 
 - `npm run dev:emulator` uses the Vite `emulator` mode: it loads `client/.env.emulator` and connects the SDK to the emulators (`client/src/services/emulators.ts`). It is ignored by `npm run build`, so deployed bundles never contain emulator URLs.
-- Google sign-in shows the Auth emulator's fake account picker: add any email. The emulator admin is `jesuestrada@gmail.com` (`functions/.env.demo-ai-interviewer`); invite other emails from `/admin`.
-- Emulator UI: http://127.0.0.1:4000. Data is lost when the emulators stop (add `--export-on-exit ./.emulator-data --import ./.emulator-data` to keep it).
+- `./emulator-data` seeds the admin `jesuestrada@gmail.com` (it is also `ADMIN_EMAIL` in `functions/.env.demo-ai-interviewer`), so it already appears in the Auth emulator's fake Google account picker; other emails can be added there and invited from `/admin`.
+- Emulator UI: http://127.0.0.1:4000. Changes are lost when the emulators stop; add `--export-on-exit ./emulator-data` to keep them (this overwrites the seed).
 - Ports: Auth 9099, Functions 5001, Firestore 8081, UI 4000.
 
 ### Environment variables
