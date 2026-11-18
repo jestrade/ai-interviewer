@@ -67,3 +67,6 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Emulator env is shared on purpose (demo values only)
+!.env.emulator

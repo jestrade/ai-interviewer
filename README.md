@@ -104,7 +104,27 @@ npm install
 npm run dev                   # http://localhost:5173
 ```
 
-The dev client talks to the **deployed** functions. To use the local emulator instead, run `firebase emulators:start --only functions,firestore,auth` and connect the SDK to it.
+The dev client talks to the **deployed** functions. For an isolated local setup use the emulators (next section).
+
+### Local development with the emulators
+
+Runs Auth, Functions and Firestore locally under the demo project `demo-ai-interviewer`. Demo project ids can never reach real Firebase, so production data, users and quotas are untouched.
+
+```bash
+# one-time: local Gemini key (git-ignored)
+cp functions/.secret.local.example functions/.secret.local   # then edit GEMINI_API_KEY
+
+# terminal 1 (repo root)
+firebase emulators:start --project demo-ai-interviewer --only auth,functions,firestore
+
+# terminal 2
+cd client && npm run dev:emulator    # http://localhost:8080
+```
+
+- `npm run dev:emulator` uses the Vite `emulator` mode: it loads `client/.env.emulator` and connects the SDK to the emulators (`client/src/services/emulators.ts`). It is ignored by `npm run build`, so deployed bundles never contain emulator URLs.
+- Google sign-in shows the Auth emulator's fake account picker: add any email. The emulator admin is `admin@example.com` (`functions/.env.demo-ai-interviewer`); invite other emails from `/admin`.
+- Emulator UI: http://127.0.0.1:4000. Data is lost when the emulators stop (add `--export-on-exit ./.emulator-data --import ./.emulator-data` to keep it).
+- Ports: Auth 9099, Functions 5001, Firestore 8081, UI 4000.
 
 ### Environment variables
 
