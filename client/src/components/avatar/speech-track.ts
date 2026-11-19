@@ -1,4 +1,4 @@
-import { visemeForChar } from "./lipsync";
+import { MouthStyle, visemeAt, visemeWeights } from "./lipsync";
 import type { Weights } from "./emotions";
 
 const DEFAULT_CHARS_PER_MS = 0.0125; // ~12 chars/s at the default speech rate
@@ -57,8 +57,8 @@ export class SpeechTrack {
   }
 
   /** Mouth shape for time `t`, or null when nothing is being said. */
-  mouthAt(t: number): Weights | null {
+  mouthAt(t: number, style: MouthStyle = "arkit"): Weights | null {
     if (!this.isActive) return null;
-    return visemeForChar(this.text[this.charIndexAt(t)]);
+    return visemeWeights(visemeAt(this.text, this.charIndexAt(t)), style);
   }
 }

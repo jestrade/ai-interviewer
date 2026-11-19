@@ -1,24 +1,38 @@
 import { composeWeights, blinkWeights } from "../compose";
 import { toEmotion } from "../emotions";
 import { IdleBehavior } from "../idle";
-import { visemeForChar } from "../lipsync";
+import { visemeAt, visemeWeights } from "../lipsync";
 import { SpeechTrack } from "../speech-track";
 
-describe("visemeForChar", () => {
-  it("opens the jaw wide for 'a' and rounds the lips for 'o'", () => {
-    expect(visemeForChar("a").jawOpen).toBeGreaterThan(0.5);
-    expect(visemeForChar("o").mouthFunnel).toBeGreaterThan(0.5);
+describe("visemeAt", () => {
+  it("maps vowels, lips-together and labiodental sounds", () => {
+    expect(visemeAt("a", 0)).toBe("aa");
+    expect(visemeAt("o", 0)).toBe("O");
+    expect(visemeAt("Bob", 0)).toBe("PP");
+    expect(visemeAt("fan", 0)).toBe("FF");
   });
 
-  it("closes the lips for b, p and m", () => {
-    expect(visemeForChar("B").mouthClose).toBeGreaterThan(0.5);
-    expect(visemeForChar("m").mouthClose).toBeGreaterThan(0.5);
+  it("reads digraphs from the next letter", () => {
+    expect(visemeAt("the", 0)).toBe("TH");
+    expect(visemeAt("she", 0)).toBe("CH");
   });
 
   it("rests on spaces, punctuation and missing input", () => {
-    expect(visemeForChar(" ")).toEqual({});
-    expect(visemeForChar(".")).toEqual({});
-    expect(visemeForChar(undefined)).toEqual({});
+    expect(visemeAt("a b", 1)).toBe("sil");
+    expect(visemeAt("a.", 1)).toBe("sil");
+    expect(visemeAt("a", 5)).toBe("sil");
+  });
+});
+
+describe("visemeWeights", () => {
+  it("uses the model's viseme shapes in oculus style", () => {
+    expect(visemeWeights("aa", "oculus")).toEqual({ viseme_aa: 0.85 });
+    expect(visemeWeights("sil", "oculus")).toEqual({});
+  });
+
+  it("builds shapes from ARKit blendshapes in arkit style", () => {
+    expect(visemeWeights("aa", "arkit").jawOpen).toBeGreaterThan(0.5);
+    expect(visemeWeights("PP", "arkit").mouthClose).toBeGreaterThan(0.5);
   });
 });
 

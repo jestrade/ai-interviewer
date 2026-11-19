@@ -27,7 +27,7 @@ export const AvatarPanel = ({ fallback = null }: { fallback?: ReactNode }) => {
   if (failed || !hasWebGL()) return <>{fallback}</>;
 
   return (
-    <div className="mx-auto h-44 w-44 shrink-0 overflow-hidden rounded-lg border-2 bg-card sm:h-52 sm:w-52">
+    <div className="mx-auto h-52 w-52 shrink-0 overflow-hidden rounded-lg border-2 bg-card sm:h-64 sm:w-64">
       <Suspense fallback={null}>
         <InterviewerAvatar onError={handleError} />
       </Suspense>

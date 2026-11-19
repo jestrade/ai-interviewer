@@ -3,6 +3,12 @@ import type { Weights } from "./emotions";
 
 const SMOOTHING = 16; // higher = snappier
 
+/**
+ * Weights are named with the `_L`/`_R` suffix; models may use `Left`/`Right`
+ * (ARKit/Ready Player Me). Returns the name the model actually has.
+ */
+const aliases = (name: string) => [name, name.replace(/_L$/, "Left").replace(/_R$/, "Right")];
+
 /** Drives every morph target (blendshape) found in a loaded model, with smoothing. */
 export class FaceRig {
   private readonly meshes: Mesh[] = [];
@@ -15,6 +21,11 @@ export class FaceRig {
         this.meshes.push(mesh);
       }
     });
+  }
+
+  /** True when the model ships dedicated viseme shapes (`viseme_aa`, ...). */
+  get hasVisemes() {
+    return this.meshes.some((mesh) => mesh.morphTargetDictionary?.viseme_aa !== undefined);
   }
 
   get morphTargetCount() {
@@ -36,9 +47,10 @@ export class FaceRig {
 
   private setInfluence(name: string, value: number) {
     for (const mesh of this.meshes) {
-      const index = mesh.morphTargetDictionary?.[name];
-      if (index !== undefined && mesh.morphTargetInfluences) {
-        mesh.morphTargetInfluences[index] = value;
+      const dictionary = mesh.morphTargetDictionary;
+      const match = dictionary && aliases(name).find((alias) => dictionary[alias] !== undefined);
+      if (dictionary && match && mesh.morphTargetInfluences) {
+        mesh.morphTargetInfluences[dictionary[match]] = value;
       }
     }
   }

@@ -1,9 +1,10 @@
 #!/usr/bin/env sh
-# Downloads the development avatar model (Face Cap, from the three.js examples).
-# The file is git-ignored: check its license before redistributing it.
+# Downloads the development avatar model: "brunette.glb" from met4citizen/TalkingHead.
+# Made with Ready Player Me, licensed CC BY-NC 4.0 (non-commercial, attribution required).
+# The file is git-ignored: check the license before redistributing or using it commercially.
 set -e
 dir="$(dirname "$0")/../public/models"
 mkdir -p "$dir"
 curl -fsSL -o "$dir/avatar.glb" \
-  "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/facecap.glb"
+  "https://raw.githubusercontent.com/met4citizen/TalkingHead/main/avatars/brunette.glb"
 echo "Saved $dir/avatar.glb"
