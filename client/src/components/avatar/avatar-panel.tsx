@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useState } from "react";
+import { lazy, ReactNode, Suspense, useCallback, useState } from "react";
 import { notifyError } from "@/services/sentry";
 
 // three.js is large: load it only when the interview screen needs it.
@@ -13,8 +13,8 @@ const hasWebGL = () => {
   }
 };
 
-/** The avatar above the chat. Renders nothing (chat only) when it can not run. */
-export const AvatarPanel = () => {
+/** The 3D interviewer. Shows `fallback` (default: nothing) when it can not run. */
+export const AvatarPanel = ({ fallback = null }: { fallback?: ReactNode }) => {
   const [failed, setFailed] = useState(false);
   const handleError = useCallback(
     (error: unknown) => {
@@ -24,10 +24,10 @@ export const AvatarPanel = () => {
     []
   );
 
-  if (failed || !hasWebGL()) return null;
+  if (failed || !hasWebGL()) return <>{fallback}</>;
 
   return (
-    <div className="mx-auto h-56 w-full max-w-md shrink-0 overflow-hidden rounded-lg border-2 bg-card sm:h-64">
+    <div className="mx-auto h-44 w-44 shrink-0 overflow-hidden rounded-lg border-2 bg-card sm:h-52 sm:w-52">
       <Suspense fallback={null}>
         <InterviewerAvatar onError={handleError} />
       </Suspense>
