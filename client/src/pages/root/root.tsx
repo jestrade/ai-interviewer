@@ -5,6 +5,8 @@ import Feedback from "@/components/feedback/feedback";
 import { useAuth } from "@/contexts/auth/hooks";
 import Admin from "../admin/admin";
 import AdminLogin from "../admin/admin-login";
+import { isEmulatorMode } from "@/services/emulators";
+import AvatarLab from "../avatar-lab/avatar-lab";
 import NotFound from "../not-found";
 import Private from "../private/private";
 
@@ -38,6 +40,7 @@ const Root = () => (
       <Route path="/feedback" element={<RequireAuth><Feedback /></RequireAuth>} />
       <Route path="/admin/login" element={<AdminEntry />} />
       <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
+      {isEmulatorMode() && <Route path="/avatar-lab" element={<AvatarLab />} />}
       <Route path="*" element={<NotFound />} />
     </Routes>
   </BrowserRouter>

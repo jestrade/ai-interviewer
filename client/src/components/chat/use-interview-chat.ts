@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { INTERVIEW_END_CODE } from "@/lib/constants";
-import { interruptSpeech, speakText } from "@/lib";
+import { useAvatarSpeech } from "@/components/avatar/avatar-context";
+import { toEmotion } from "@/components/avatar/emotions";
 import { useInterviewApi } from "@/services/api";
 import { notifyError } from "@/services/sentry";
 import { Message } from "./types";
@@ -19,6 +20,7 @@ const createMessage = (role: Message["role"], content: string): Message => ({
 export const useInterviewChat = () => {
   const { toast } = useToast();
   const { sendMessage } = useInterviewApi();
+  const { say, stop } = useAvatarSpeech();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isWaiting, setIsWaiting] = useState(false);
   const [isEnded, setIsEnded] = useState(false);
@@ -27,7 +29,7 @@ export const useInterviewChat = () => {
   const ask = useCallback(
     async (text: string) => {
       setIsWaiting(true);
-      interruptSpeech();
+      stop();
       try {
         const result = await sendMessage.mutateAsync(text);
 
@@ -42,7 +44,7 @@ export const useInterviewChat = () => {
 
         if (result.text) {
           setMessages((prev) => [...prev, createMessage("assistant", result.text)]);
-          speakText(result.text);
+          say(result.text, toEmotion(result.emotion));
         }
       } catch (error) {
         notifyError("Error sending message:" + error);
@@ -56,7 +58,7 @@ export const useInterviewChat = () => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sendMessage.mutateAsync, toast]
+    [sendMessage.mutateAsync, toast, say, stop]
   );
 
   const send = useCallback(
@@ -73,8 +75,8 @@ export const useInterviewChat = () => {
     if (started.current) return;
     started.current = true;
     ask(INITIAL_MESSAGE);
-    return interruptSpeech;
-  }, [ask]);
+    return stop;
+  }, [ask, stop]);
 
   return { messages, isWaiting, isEnded, send };
 };

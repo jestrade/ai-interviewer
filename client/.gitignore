@@ -71,3 +71,6 @@ node_modules/
 # Emulator env is shared on purpose (demo values only)
 !.env.emulator
 dist-emulator
+
+# Avatar model is downloaded locally (see README)
+public/models/

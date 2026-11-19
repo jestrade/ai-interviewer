@@ -51,6 +51,21 @@ Browser (React + Vite)  ──Firebase Auth (Google)──►  ID token
 - **Guard (single entry point)** – `functions/src/access.js` (`requireAccess`, `requireAdmin`) is the one place access rules live.
 - **Custom hooks / composition** – the chat is split into `useInterviewChat`, `useSpeechRecognition`, `useMicrophone` and small presentational components.
 
+## Interviewer avatar (3D)
+
+The interviewer is a 3D face rendered with three.js that speaks (English only, `en-US`), moves its lips and shows expressions.
+
+- **How it works:** `sendMessage` returns `{ text, emotion }` (Gemini answers in JSON with one of `neutral, friendly, curious, encouraging, serious, thoughtful`). The browser voice (`speechSynthesis`, en-US) reads the text; word-boundary events and a letter-to-mouth-shape map (`components/avatar/lipsync.ts`) drive the model's ARKit blendshapes, plus blinking, eye wandering and head sway while idle. Speech recognition is also fixed to `en-US`.
+- **Fallback:** if WebGL or the model is unavailable the avatar is hidden and the chat works as before.
+- **Model:** any glTF with the 52 ARKit blendshapes works. The development model (Face Cap, from the three.js examples) is **not committed**; download it once:
+
+```bash
+cd client && ./scripts/fetch-avatar-model.sh      # saves client/public/models/avatar.glb
+```
+
+Check the license of any model before redistributing it. The three.js loaders need `client/public/basis/` (Basis transcoder, committed).
+- **Try it without Gemini:** with the emulators running, open `http://127.0.0.1:5002/avatar-lab` (only available in emulator builds) to type a sentence, pick an emotion and watch the avatar speak.
+
 ## Repository layout
 
 ```
