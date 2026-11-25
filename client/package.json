@@ -14,7 +14,8 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "deploy": "yarn run build && firebase deploy --config ../firebase.json --project ai-interviewer-1d892"
+    "deploy": "yarn run build && firebase deploy --config ../firebase.json --project ai-interviewer-1d892",
+    "check:browser": "playwright test"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
@@ -74,6 +75,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^22.16.5",
     "@types/react": "^18.3.23",
