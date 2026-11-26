@@ -11,6 +11,8 @@ export interface AvatarStore {
   readonly emotion: Emotion;
   readonly track: SpeechTrack | null;
   say(text: string, emotion: Emotion): void;
+  /** Changes the expression without speaking (the avatar lab previews with it). */
+  setEmotion(emotion: Emotion): void;
   stop(): void;
 }
 
@@ -44,6 +46,9 @@ export const createAvatarStore = (): AvatarStore => {
           if (track === current) track = null;
         },
       });
+    },
+    setEmotion(next) {
+      emotion = next;
     },
     stop() {
       finishCurrent();

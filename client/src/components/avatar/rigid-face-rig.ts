@@ -18,6 +18,8 @@ export const FACE = {
   mouthHalfWidth: 0.0135,
   eyeY: 0.3993,
   eyeHalfSpacing: 0.0206,
+  /** Centre of the eyebrows. */
+  browY: 0.4088,
   /** Where the head turns: the base of the neck. */
   neck: [0.0, 0.31, 0.0045] as const,
   /** Vertices above `neckLow` follow the head fully from `neckHigh` up. */
@@ -30,6 +32,9 @@ uniform float uJaw;
 uniform float uNarrow;
 uniform float uSmile;
 uniform float uBlink;
+uniform float uSquint;
+uniform vec3 uBrow;   // inner up, outer up, down
+uniform float uBrowY;
 uniform mat3 uHeadRot;
 uniform vec3 uHeadPivot;
 uniform vec4 uMouth;  // centerZ, mouthY, halfWidth, unused
@@ -73,12 +78,23 @@ vCavity = 0.0;
   transformed.z = cz + (transformed.z - cz) * (1.0 - 0.28 * uNarrow * lips);
   float corner = band(dz, hw * 0.45, hw * 1.0) * (1.0 - band(dz, hw * 1.0, hw * 1.9))
                * (1.0 - band(abs(position.y - my), 0.0, 0.013)) * front;
-  transformed.y += uSmile * 0.0035 * corner;
+  transformed.y += uSmile * 0.0075 * corner;
+  transformed.z += sign(position.z - cz) * uSmile * 0.002 * corner;
+  // Smiling lifts the cheeks, which narrows the eyes from below.
+  float cheek = (1.0 - band(dz, 0.03, 0.05)) * band(position.y, my + 0.002, my + 0.012) * (1.0 - band(position.y, my + 0.02, my + 0.03)) * front;
+  transformed.y += uSmile * 0.0025 * cheek;
+
+  // Eyebrows: inner ends, outer ends, and pulled down.
+  float browDz = band(dz, 0.003, 0.009) * (1.0 - band(dz, 0.027, 0.04));
+  float browDy = 1.0 - band(abs(position.y - uBrowY), 0.004, 0.011);
+  float browW = browDz * browDy * front;
+  float inner = 1.0 - band(dz, 0.012, 0.024);
+  transformed.y += browW * (uBrow.x * 0.0045 * inner + uBrow.y * 0.0045 * (1.0 - inner) - uBrow.z * 0.0042);
 
   // Blink: squash each eye vertically so the lids meet.
   float ez = min(abs(position.z - cz - uEyes.y), abs(position.z - cz + uEyes.y));
   float eyeMask = (1.0 - band(ez, 0.0105, 0.0165)) * front;
-  transformed.y = mix(transformed.y, lidY(transformed.y, uEyes.x, 0.92 * uBlink), eyeMask);
+  transformed.y = mix(transformed.y, lidY(transformed.y, uEyes.x, min(0.92, 0.92 * uBlink + 0.45 * uSquint)), eyeMask);
 }
 // The head turns on the neck; hair and collar below the neck stay put.
 transformed = mix(transformed, uHeadPivot + uHeadRot * (transformed - uHeadPivot), headW);
@@ -108,6 +124,9 @@ const patchMaterial = (material: Material) => {
     uNarrow: { value: 0 },
     uSmile: { value: 0 },
     uBlink: { value: 0 },
+    uSquint: { value: 0 },
+    uBrow: { value: new Vector3() },
+    uBrowY: { value: FACE.browY },
     uHeadRot: { value: new Matrix3() },
     uHeadPivot: { value: new Vector3(...FACE.neck) },
     uMouth: { value: new Vector4(FACE.centerZ, FACE.mouthY, FACE.mouthHalfWidth, 0) },
@@ -137,7 +156,7 @@ const patchMaterial = (material: Material) => {
 export class RigidFaceRig implements FaceDriver {
   readonly mouthStyle: MouthStyle = "arkit";
   private readonly uniforms: ReturnType<typeof patchMaterial>[] = [];
-  private readonly current = { jaw: 0, narrow: 0, smile: 0, blink: 0, headRoll: 0, headPitch: 0 };
+  private readonly current = { jaw: 0, narrow: 0, smile: 0, blink: 0, squint: 0, browInner: 0, browOuter: 0, browDown: 0, headRoll: 0, headPitch: 0 };
   private readonly euler = new Euler(0, 0, 0, "YZX");
   private readonly matrix = new Matrix4();
 
@@ -164,8 +183,14 @@ export class RigidFaceRig implements FaceDriver {
     c.narrow += (goal.narrow - c.narrow) * k;
     c.smile += (goal.smile - c.smile) * k;
     c.blink += (goal.blink - c.blink) * blinkK;
-    c.headRoll += (goal.headRoll - c.headRoll) * k * 0.35;
-    c.headPitch += (goal.headPitch - c.headPitch) * k * 0.35;
+    // Expressions ease in over a third of a second instead of snapping.
+    const slow = 1 - Math.exp(-deltaSeconds * 6);
+    c.squint += (goal.squint - c.squint) * slow;
+    c.browInner += (goal.browInner - c.browInner) * slow;
+    c.browOuter += (goal.browOuter - c.browOuter) * slow;
+    c.browDown += (goal.browDown - c.browDown) * slow;
+    c.headRoll += (goal.headRoll - c.headRoll) * slow;
+    c.headPitch += (goal.headPitch - c.headPitch) * slow;
 
     // Mesh axes: X forward, Y up, Z sideways. Pitch nods about Z, roll about X.
     this.euler.set(c.headRoll, head.yaw, -(head.pitch + c.headPitch));
@@ -175,6 +200,8 @@ export class RigidFaceRig implements FaceDriver {
       u.uNarrow.value = c.narrow;
       u.uSmile.value = c.smile;
       u.uBlink.value = c.blink;
+      u.uSquint.value = c.squint;
+      u.uBrow.value.set(c.browInner, c.browOuter, c.browDown);
       u.uHeadRot.value.setFromMatrix4(this.matrix);
     }
   }

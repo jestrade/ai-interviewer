@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AvatarPanel } from "@/components/avatar/avatar-panel";
 import { AvatarProvider } from "@/components/avatar/avatar-provider";
-import { useAvatarSpeech } from "@/components/avatar/avatar-context";
+import { useAvatarSpeech, useAvatarStore } from "@/components/avatar/avatar-context";
 import { EMOTIONS, Emotion } from "@/components/avatar/emotions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,8 +11,14 @@ const SAMPLE =
 
 const Lab = () => {
   const { say, stop } = useAvatarSpeech();
+  const store = useAvatarStore();
   const [text, setText] = useState(SAMPLE);
   const [emotion, setEmotion] = useState<Emotion>("friendly");
+
+  const choose = (name: Emotion) => {
+    setEmotion(name);
+    store?.setEmotion(name); // show it right away, without waiting for Speak
+  };
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-4 p-4">
@@ -25,7 +31,7 @@ const Lab = () => {
             key={name}
             size="sm"
             variant={name === emotion ? "default" : "outline"}
-            onClick={() => setEmotion(name)}
+            onClick={() => choose(name)}
           >
             {name}
           </Button>

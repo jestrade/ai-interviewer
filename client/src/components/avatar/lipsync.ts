@@ -51,3 +51,55 @@ export const visemeWeights = (viseme: Viseme, style: MouthStyle): Weights => {
   if (style === "arkit") return ARKIT[viseme];
   return viseme === "sil" ? {} : { [`viseme_${viseme}`]: OCULUS_STRENGTH };
 };
+
+const VOWELS = new Set<Viseme>(["aa", "E", "I", "O", "U"]);
+const LIPS_TOGETHER = new Set<Viseme>(["PP", "FF"]);
+
+/** How long a character takes to say, relative to a plain consonant (= 1). */
+export const charWeight = (char: string): number => {
+  if (/[aeiouy]/i.test(char)) return 2.6; // vowels carry the syllable
+  if (/[a-z]/i.test(char)) return 1;
+  if (char === " ") return 0.7;
+  if (/[.!?]/.test(char)) return 9; // sentence pause
+  if (/[,;:]/.test(char)) return 5; // short pause
+  return 0.5;
+};
+
+const KERNEL_RADIUS = 2.2;
+
+/** How much the character at `index` counts for the mouth shape around it. */
+const influence = (text: string, index: number): number => {
+  const char = text[index];
+  if (char === " ") return 0.5; // between words the mouth stays partly open
+  if (!/[a-z]/i.test(char)) return 2.5; // punctuation: the mouth rests
+  const viseme = visemeAt(text, index);
+  if (VOWELS.has(viseme)) return 1.6;
+  if (LIPS_TOGETHER.has(viseme)) return 2.2; // must reach closed lips
+  return 1;
+};
+
+/**
+ * Mouth shape at a fractional character `position`. It blends the neighbouring
+ * characters (coarticulation): vowels open the jaw, "m/b/p" close the lips,
+ * consonants only nudge the shape, and punctuation lets the mouth rest. This
+ * is what stops the mouth from flickering through every single letter.
+ */
+export const blendedMouth = (text: string, position: number, style: MouthStyle): Weights => {
+  const total: Weights = {};
+  let sum = 0;
+  const first = Math.floor(position) - 2;
+  for (let index = first; index <= first + 4; index++) {
+    if (index < 0 || index >= text.length) continue;
+    const distance = Math.abs(index + 0.5 - position);
+    const kernel = Math.max(0, 1 - distance / KERNEL_RADIUS);
+    if (kernel === 0) continue;
+    const k = kernel * influence(text, index);
+    sum += k;
+    for (const [name, weight] of Object.entries(visemeWeights(visemeAt(text, index), style))) {
+      total[name] = (total[name] ?? 0) + weight * k;
+    }
+  }
+  if (sum === 0) return {};
+  for (const name of Object.keys(total)) total[name] /= sum;
+  return total;
+};

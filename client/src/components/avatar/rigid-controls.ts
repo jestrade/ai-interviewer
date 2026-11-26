@@ -14,6 +14,12 @@ export interface RigidControls {
   smile: number;
   /** Eyelids closed. */
   blink: number;
+  /** Lids narrowed (smiling eyes, a hard look), 0..1. */
+  squint: number;
+  /** Brows: inner and outer ends raised, and pulled down, each 0..1. */
+  browInner: number;
+  browOuter: number;
+  browDown: number;
   /** Extra head angles that carry the expression (radians). */
   headRoll: number;
   headPitch: number;
@@ -32,9 +38,13 @@ export const rigidControls = (w: Weights): RigidControls => ({
   narrow: clamp01(Math.max(w.mouthFunnel ?? 0, w.mouthPucker ?? 0)),
   smile: clamp01(mean(w.mouthSmile_L, w.mouthSmile_R)),
   blink: clamp01(mean(w.eyeBlink_L, w.eyeBlink_R)),
-  headRoll: ((w.browOuterUp_L ?? 0) - (w.browOuterUp_R ?? 0)) * 0.3,
+  squint: clamp01(mean(w.cheekSquint_L, w.cheekSquint_R) * 1.2 + mean(w.browDown_L, w.browDown_R) * 0.5 - mean(w.eyeWide_L, w.eyeWide_R)),
+  browInner: clamp01(w.browInnerUp ?? 0),
+  browOuter: clamp01(mean(w.browOuterUp_L, w.browOuterUp_R) * 1.4),
+  browDown: clamp01(mean(w.browDown_L, w.browDown_R) * 1.6),
+  headRoll: ((w.browOuterUp_L ?? 0) - (w.browOuterUp_R ?? 0)) * 0.7, // curious: tilt
   headPitch:
-    mean(w.browDown_L, w.browDown_R) * 0.07 - // serious: chin down
-    mean(w.eyeLookUp_L, w.eyeLookUp_R) * 0.25 - // thoughtful: look up
-    (w.browInnerUp ?? 0) * 0.02, // curious/encouraging: chin slightly up
+    mean(w.browDown_L, w.browDown_R) * 0.16 - // serious: chin down
+    mean(w.eyeLookUp_L, w.eyeLookUp_R) * 0.5 - // thoughtful: look up
+    (w.browInnerUp ?? 0) * 0.04, // curious/encouraging: chin slightly up
 });

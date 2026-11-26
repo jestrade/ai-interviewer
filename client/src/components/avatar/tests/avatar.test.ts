@@ -1,7 +1,7 @@
 import { composeWeights, blinkWeights } from "../compose";
 import { toEmotion } from "../emotions";
 import { IdleBehavior } from "../idle";
-import { visemeAt, visemeWeights } from "../lipsync";
+import { blendedMouth, charWeight, visemeAt, visemeWeights } from "../lipsync";
 import { rigidControls } from "../rigid-controls";
 import { SpeechTrack } from "../speech-track";
 
@@ -118,5 +118,53 @@ describe("rigidControls", () => {
     expect(rigidControls({ browOuterUp_L: 0.35, browOuterUp_R: 0.2 }).headRoll).toBeGreaterThan(0);
     expect(rigidControls({ browDown_L: 0.35, browDown_R: 0.35 }).headPitch).toBeGreaterThan(0);
     expect(rigidControls({}).headPitch).toBe(0);
+  });
+});
+
+describe("blendedMouth", () => {
+  const jaw = (text: string, position: number) => blendedMouth(text, position, "arkit").jawOpen ?? 0;
+
+  it("opens wide on a vowel and stays nearly shut on a plain consonant", () => {
+    expect(jaw("ssaass", 2.5)).toBeGreaterThan(jaw("ssaass", 0.5));
+  });
+
+  it("does not flicker: moving half a letter changes the jaw only a little", () => {
+    const text = "interviewer";
+    for (let p = 0; p < text.length - 1; p += 0.5) {
+      expect(Math.abs(jaw(text, p + 0.5) - jaw(text, p))).toBeLessThan(0.3);
+    }
+  });
+
+  it("closes the lips on m/b/p and rests at a full stop", () => {
+    expect(blendedMouth("ama", 1.5, "arkit").mouthClose ?? 0).toBeGreaterThan(0.2);
+    expect(jaw("yes. no", 3.5)).toBeLessThan(jaw("yes no", 1.5));
+  });
+
+  it("keeps the mouth partly open between words", () => {
+    expect(jaw("ha ha", 2.5)).toBeGreaterThan(0.1);
+  });
+});
+
+describe("speech timing", () => {
+  it("gives vowels more time than consonants and pauses at punctuation", () => {
+    expect(charWeight("a")).toBeGreaterThan(charWeight("t"));
+    expect(charWeight(".")).toBeGreaterThan(charWeight(","));
+    expect(charWeight(",")).toBeGreaterThan(charWeight(" "));
+  });
+
+  it("stays on a pause longer than on the same number of letters", () => {
+    let now = 0;
+    const track = new SpeechTrack("ab. cd", () => now);
+    now = 0;
+    track.start();
+    // Time to cross "b" (a consonant) vs time spent on the full stop.
+    const at = (t: number) => track.positionAt(t);
+    const step = 10;
+    let t = 0;
+    while (at(t) < 2) t += step;
+    const reachedStop = t;
+    while (at(t) < 3) t += step;
+    const pastStop = t;
+    expect(pastStop - reachedStop).toBeGreaterThan(reachedStop / 2);
   });
 });
