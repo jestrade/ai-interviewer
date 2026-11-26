@@ -1,12 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/auth/hooks";
+import { AvatarProvider } from "@/components/avatar/avatar-provider";
 import { ChatHeader } from "./chat-header";
 import { ChatInput } from "./chat-input";
 import { InterviewEndedPanel } from "./interview-ended-panel";
 import { MessageList } from "./message-list";
 import { useInterviewChat } from "./use-interview-chat";
 
-const Chat = () => {
+const ChatContent = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { messages, isWaiting, isEnded, send } = useInterviewChat();
@@ -25,5 +26,11 @@ const Chat = () => {
     </>
   );
 };
+
+const Chat = () => (
+  <AvatarProvider>
+    <ChatContent />
+  </AvatarProvider>
+);
 
 export default Chat;

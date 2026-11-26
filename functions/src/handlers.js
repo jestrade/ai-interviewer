@@ -18,7 +18,7 @@ import { requireAccess, requireAdmin, identify, normalizeEmail } from "./access.
 import { invite, listInvitees, revoke } from "./services/invitation-service.js";
 import { recordInterviewAttempt, upsertUser } from "./services/user-service.js";
 
-const endResponse = (text) => ({ text, code: CODES.END_INTERVIEW });
+const endResponse = (text) => ({ text, emotion: "serious", code: CODES.END_INTERVIEW });
 
 const requireString = (value, field) => {
   if (typeof value !== "string" || !value.trim()) {
@@ -112,7 +112,7 @@ export const sendMessage = wrap("sendMessage", async ({ sessionId, message, audi
     parts: [{ text: userText }],
   });
 
-  const replyText = await generateInterviewReply({
+  const { text: replyText, emotion } = await generateInterviewReply({
     history: withUserTurn.interviewHistory,
     name: session.name,
     role: session.role,
@@ -136,7 +136,7 @@ export const sendMessage = wrap("sendMessage", async ({ sessionId, message, audi
     code = CODES.END_INTERVIEW;
   }
 
-  return { text: replyText, code };
+  return { text: replyText, emotion, code };
 });
 
 export const endInterview = wrap("endInterview", async ({ sessionId }, request) => {

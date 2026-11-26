@@ -27,6 +27,7 @@ interface ApiResponse {
   message?: string;
   sessionId?: string;
   text?: string;
+  emotion?: string;
   code?: string | null;
   feedback?: { question: string; answer: string; feedback: string }[];
 }
