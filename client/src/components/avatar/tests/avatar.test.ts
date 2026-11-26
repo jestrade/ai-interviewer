@@ -2,6 +2,7 @@ import { composeWeights, blinkWeights } from "../compose";
 import { toEmotion } from "../emotions";
 import { IdleBehavior } from "../idle";
 import { visemeAt, visemeWeights } from "../lipsync";
+import { rigidControls } from "../rigid-controls";
 import { SpeechTrack } from "../speech-track";
 
 describe("visemeAt", () => {
@@ -97,5 +98,25 @@ describe("IdleBehavior", () => {
     idle.update(1.5, false); // starts the first blink
     expect(idle.update(1.5 + 0.08, false).blink).toBeGreaterThan(0.9);
     expect(idle.update(1.5 + 0.5, false).blink).toBe(0);
+  });
+});
+
+describe("rigidControls", () => {
+  it("opens the jaw from jawOpen and closes it when the lips press together", () => {
+    expect(rigidControls({ jawOpen: 0.6 }).jaw).toBeCloseTo(0.6);
+    expect(rigidControls({ jawOpen: 0.6, mouthClose: 1 }).jaw).toBeLessThan(0.1);
+  });
+
+  it("averages the left and right sides and keeps every control in range", () => {
+    const controls = rigidControls({ mouthSmile_L: 0.4, mouthSmile_R: 0.2, eyeBlink_L: 1, eyeBlink_R: 1, mouthFunnel: 3 });
+    expect(controls.smile).toBeCloseTo(0.3);
+    expect(controls.blink).toBe(1);
+    expect(controls.narrow).toBe(1);
+  });
+
+  it("turns expressions into head poses", () => {
+    expect(rigidControls({ browOuterUp_L: 0.35, browOuterUp_R: 0.2 }).headRoll).toBeGreaterThan(0);
+    expect(rigidControls({ browDown_L: 0.35, browDown_R: 0.35 }).headPitch).toBeGreaterThan(0);
+    expect(rigidControls({}).headPitch).toBe(0);
   });
 });

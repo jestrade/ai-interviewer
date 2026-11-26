@@ -1,5 +1,7 @@
 import { Mesh, Object3D } from "three";
 import type { Weights } from "./emotions";
+import type { FaceDriver, HeadPose } from "./face-driver";
+import type { MouthStyle } from "./lipsync";
 
 const SMOOTHING = 16; // higher = snappier
 
@@ -10,11 +12,15 @@ const SMOOTHING = 16; // higher = snappier
 const aliases = (name: string) => [name, name.replace(/_L$/, "Left").replace(/_R$/, "Right")];
 
 /** Drives every morph target (blendshape) found in a loaded model, with smoothing. */
-export class FaceRig {
+export class FaceRig implements FaceDriver {
   private readonly meshes: Mesh[] = [];
   private readonly current: Weights = {};
+  private readonly head?: Object3D;
+  private readonly headBase?: Object3D["rotation"];
 
   constructor(root: Object3D) {
+    this.head = root.getObjectByName("Head") ?? undefined;
+    this.headBase = this.head?.rotation.clone();
     root.traverse((object) => {
       const mesh = object as Mesh;
       if (mesh.isMesh && mesh.morphTargetDictionary && mesh.morphTargetInfluences) {
@@ -28,11 +34,19 @@ export class FaceRig {
     return this.meshes.some((mesh) => mesh.morphTargetDictionary?.viseme_aa !== undefined);
   }
 
+  get mouthStyle(): MouthStyle {
+    return this.hasVisemes ? "oculus" : "arkit";
+  }
+
   get morphTargetCount() {
     return this.meshes.reduce((sum, mesh) => sum + Object.keys(mesh.morphTargetDictionary ?? {}).length, 0);
   }
 
-  apply(target: Weights, deltaSeconds: number) {
+  apply(target: Weights, deltaSeconds: number, pose: HeadPose) {
+    if (this.head && this.headBase) {
+      this.head.rotation.y = this.headBase.y + pose.yaw;
+      this.head.rotation.x = this.headBase.x + pose.pitch;
+    }
     const k = 1 - Math.exp(-deltaSeconds * SMOOTHING);
     const names = new Set([...Object.keys(this.current), ...Object.keys(target)]);
 

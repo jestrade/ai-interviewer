@@ -53,17 +53,12 @@ Browser (React + Vite)  ──Firebase Auth (Google)──►  ID token
 
 ## Interviewer avatar (3D)
 
-The interviewer is a 3D face rendered with three.js that speaks (English only, `en-US`), moves its lips and shows expressions.
+The interviewer is a 3D character rendered with three.js that speaks (English only, `en-US`), moves its lips and shows expressions.
 
 - **How it works:** `sendMessage` returns `{ text, emotion }` (Gemini answers in JSON with one of `neutral, friendly, curious, encouraging, serious, thoughtful`). The browser voice (`speechSynthesis`, en-US) reads the text; word-boundary events and a letter-to-viseme map (`components/avatar/lipsync.ts`) drive the model's mouth, plus blinking, eye wandering and head movement while idle. The mouth uses the model's own `viseme_*` shapes when it has them and falls back to ARKit blendshapes otherwise. Speech recognition is also fixed to `en-US`.
 - **Fallback:** if WebGL or the model is unavailable the avatar is replaced by the robot badge and the chat works as before.
-- **Model:** any glTF with ARKit blendshapes works (`_L/_R` or `Left/Right` names; Oculus `viseme_*` shapes are used when present). The development model is "brunette.glb" from [TalkingHead](https://github.com/met4citizen/TalkingHead), made with [Ready Player Me](https://readyplayer.me) and licensed **CC BY-NC 4.0** (non-commercial, attribution required). It is **not committed**; download it once:
-
-```bash
-cd client && ./scripts/fetch-avatar-model.sh      # saves client/public/models/avatar.glb
-```
-
-Check the license of any model before redistributing it or using it commercially. The three.js loaders need `client/public/basis/` (Basis transcoder, committed).
+- **Scene:** she sits in a procedural office (window, bookshelf, desk lamp; `components/avatar/room.ts`, no image files). The room is drawn once, blurred like a lens would, and also used as the environment map, so the light on her skin matches the window and lamp behind her. The look follows the reference game [saltline](https://github.com/jestrade/videogame-saltline-fable-5.2): soft key/fill/rim lights with self-shadowing, sheen and ambient occlusion on the materials, then bloom, filmic tone mapping, vignette, film grain and a hint of chromatic aberration (`components/avatar/stage.ts`).
+- **Model:** `client/public/models/interviewer.glb` (git-ignored; copy your model there). It is a single mesh with no skeleton or blendshapes, so `RigidFaceRig` bends it in the vertex shader: jaw and a dark mouth cavity for speech, lip rounding, smile, blinking (lids squash shut) and a head turn on the neck. The face landmarks are in `FACE` (`rigid-face-rig.ts`); update them if the model changes. A glTF with ARKit blendshapes also works: `FaceRig` is picked automatically (`_L/_R` or `Left/Right` names; Oculus `viseme_*` shapes when present). Check the license of any model before redistributing it. The three.js loaders need `client/public/basis/` (Basis transcoder, committed).
 - **Try it without Gemini:** with the emulators running, open `http://127.0.0.1:5002/avatar-lab` (only available in emulator builds) to type a sentence, pick an emotion and watch the avatar speak.
 
 ## Repository layout
