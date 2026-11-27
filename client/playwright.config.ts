@@ -9,6 +9,8 @@ export default defineConfig({
   // *.pw.ts keeps these files out of the unit-test runner, whose default pattern matches *.spec.ts.
   testMatch: '**/*.pw.ts',
   reporter: 'list',
+  // At most 2 browsers at once: the default is half the CPU cores, which exhausted memory when several agents ran checks together.
+  workers: 2,
   use: {
     baseURL: 'http://127.0.0.1:4308',
     screenshot: 'only-on-failure',
